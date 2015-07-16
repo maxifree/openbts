@@ -1,0 +1,29 @@
+set(SOURCE_FILES
+    GSMChannelHistory.cpp
+    GSMCCCH.cpp
+    GSMRadioResource.cpp
+    GSML3SSMessages.cpp
+    GSM610Tables.cpp
+    GSMCommon.cpp
+    GSMConfig.cpp
+    GSML1FEC.cpp
+    GSML2LAPDm.cpp
+    GSML3CCElements.cpp
+    GSML3CCMessages.cpp
+    GSML3CommonElements.cpp
+    GSML3GPRSElements.cpp
+    GSML3Message.cpp
+    GSML3MMElements.cpp
+    GSML3MMMessages.cpp
+    GSML3RRElements.cpp
+    GSML3RRMessages.cpp
+    GSMLogicalChannel.cpp
+    GSMTDMA.cpp
+    GSMTransfer.cpp
+    GSMTAPDump.cpp
+    GSMSMSCBL3Messages.cpp
+    PowerManager.cpp
+    PhysicalStatus.cpp
+)
+add_library(GSM STATIC ${SOURCE_FILES})
+target_link_libraries(GSM ${A53_LIBRARIES} common)

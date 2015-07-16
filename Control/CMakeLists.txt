@@ -1,0 +1,20 @@
+set(SOURCE_FILES
+    L3TermCause.cpp
+    L3CallControl.cpp
+    PagingEntry.cpp
+    L3Handover.cpp
+    L3SMSControl.cpp
+    L3MobilityManagement.cpp
+    L3StateMachine.cpp
+    L3SupServ.cpp
+    L3MMLayer.cpp
+    L3TranEntry.cpp
+    L3LogicalChannel.cpp
+    L3Utils.cpp
+    TMSITable.cpp
+    ControlTransfer.cpp
+    DCCHDispatch.cpp
+    CBS.cpp
+    RRLPServer.cpp
+)
+add_library(control STATIC ${SOURCE_FILES})

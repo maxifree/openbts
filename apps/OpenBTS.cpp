@@ -49,7 +49,7 @@ ReportingTable gReports(gConfig.getStr("Control.Reporting.StatsTable").c_str());
 #include <GSMLogicalChannel.h>
 
 #include <ControlTransfer.h>
-#include <Control/TMSITable.h>
+#include <TMSITable.h>
 
 #include <Globals.h>
 
