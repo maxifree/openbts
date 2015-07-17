@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(openbts)
 
-execute_process(COMMAND ${CMAKE_SOURCE_DIR}/Globals/GrabRepoInfo.sh ${CMAKE_SOURCE_DIR}
+execute_process(COMMAND git rev-parse --short=10 HEAD -C ${CMAKE_SOURCE_DIR}
                 OUTPUT_VARIABLE REPO_REV)
 string(STRIP ${REPO_REV} REPO_REV)
 add_definitions(-DREPO_REV="${REPO_REV}")
