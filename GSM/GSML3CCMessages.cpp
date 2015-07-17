@@ -360,18 +360,6 @@ void L3Setup::writeBody( L3Frame &dest, size_t &wp ) const
 // so you could parse out the network->mobile message too.
 void L3Setup::parseBody( const L3Frame &src, size_t &rp )
 {
-#if 0 // (pat) 10-2012, Replaced so we do not assume the order of the IEs.
-	skipTV(0x0D,4,src,rp);		// skip Repeat Indicator.
-	skipTLV(0x04,src,rp);		// skip Bearer Capability 1.
-	skipTLV(0x04,src,rp);		// skip Bearer Capability 2.
-	skipTLV(0x1C,src,rp);		// skip Facility.
-	skipTLV(0x1E,src,rp);		// skip Progress.	(pat) This is an irrelevant error in the original version.
-	skipTLV(0x34,src,rp);		// skip Signal.	    (pat) This is an irrelevant error in the original version.
-	mHaveCallingPartyBCDNumber = mCallingPartyBCDNumber.parseTLV(0x5C,src,rp);
-	skipTLV(0x5D,src,rp);		// skip Calling Party Subaddress
-	mHaveCalledPartyBCDNumber = mCalledPartyBCDNumber.parseTLV(0x5E,src,rp);
-	// ignore the rest
-#else
 	while (rp < src.size()) {
 		unsigned iei = src.readField(rp,8);
 		LOG(DEBUG) << "L3Setup"<<LOGHEX(iei)<<LOGVAR2("len",src.peekField(rp,8))<<LOGVAR(rp)<<LOGVAR2("remaining",src.size()-rp);
@@ -445,7 +433,6 @@ void L3Setup::parseBody( const L3Frame &src, size_t &rp )
 			continue;
 		}
 	}
-#endif
 }
 
 size_t L3Setup::l2BodyLength() const 
@@ -521,15 +508,6 @@ void L3Disconnect::text(ostream& os) const
 
 void L3CallConfirmed::parseBody(const L3Frame& src, size_t &rp)
 {
-#if 0 // (pat) 10-2012, Replaced so we do not assume the order of the IEs.
-	skipTV(0x0D,4,src,rp);		// skip repeat indicator
-	skipTLV(0x04,src,rp);		// skip bearer capability 1
-	skipTLV(0x04,src,rp);		// skip bearer capability 2
-	mHaveCause = mCause.parseTLV(0x08,src,rp);
-	skipTLV(0x15,src,rp);		// Skip CC capabilities
-	skipTLV(0x2D,src,rp);		// Skip CC capabilities
-	// ignore call control capabilities
-#else
 	while (rp < src.size()) {
 		unsigned iei = src.readField(rp,8);
 		LOG(DEBUG) << "L3Setup"<<LOGHEX(iei)<<LOGVAR2("len",src.peekField(rp,8))<<LOGVAR(rp)<<LOGVAR2("remaining",src.size()-rp);
@@ -560,7 +538,6 @@ void L3CallConfirmed::parseBody(const L3Frame& src, size_t &rp)
 			continue;
 		}
 	}
-#endif
 }
 
 

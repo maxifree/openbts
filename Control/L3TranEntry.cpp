@@ -404,47 +404,6 @@ bool TranEntry::deadOrRemoved() const
 //	return SIP::NullState;
 //}
 
-
-#if UNUSED
-bool TranEntry::teDead() const
-{
-	// Get the state information and release the locks.
-
-	// If it's locked, we assume someone has locked it,
-	// so it's not dead.
-	// And if someone locked in permanently,
-	// the resulting deadlock would spread through the whole system.
-
-	//if (!mLock.trylock()) return false;
-	if (mDialog && mDialog->sipIsStuck()) return true;
-	//mLock.unlock();
-
-#if 0
-	// (pat) You cannot check the sip state here based on the transaction state-age because the state
-	// age is not updated for sip-side state changes.
-	// 30-second tests
-	if (age < 30*1000) return false;
-	// Failed?
-	if (lSIPState==SIP::Fail) return true;
-	// Bad handover?
-	if (lSIPState==SIP::HandoverInbound) return true;
-	// SIP Null state?
-	if (lSIPState==SIP::NullState) return true;
-	// SIP stuck in proceeding?
-	if (lSIPState==SIP::Proceeding) return true;
-	// SIP cancelled?
-	if (lSIPState==SIP::Canceled) return true;
-	// SIP Cleared?
-	if (lSIPState==SIP::Cleared) return true;
-#endif
-	
-	// If we got here, the state-vs-timer relationship
-	// appears to be valid.
-	return false;
-}
-#endif
-
-
 void TranEntryProtected::stateText(ostream &os) const
 {
 	os << " GSMState=" << mGSMState;	// Dont call getGSMState(), it asserts 0 if the transaction has been removed;
@@ -518,77 +477,6 @@ void TranEntry::runQuery(const char* query) const
 }
 #endif
 
-
-
-// (pat) David says: No more external reporting tables.
-//void TranEntry::insertIntoDatabase()
-//{
-//	if (mDialog == NULL) { return; }	// TODO: We might want to see the LUR transactions, which also do not have an mSIP.
-//
-//	// This should be called only from gNewTransactionTable::add.
-//	// Caller should hold mLock.
-//
-//	ostringstream serviceTypeSS;
-//	serviceTypeSS << mService;
-//
-//	ostringstream sipStateSS;
-//	mPrevSipState = mDialog->getSipState();
-//	sipStateSS << mPrevSipState;
-//
-//	string subscriber = mSubscriber.fmidUsername();
-//
-//	const char* stateString = CCState::callStateString(getGSMState());
-//	assert(stateString);
-//
-//	// FIXME -- This should be done in a single SQL transaction.
-//
-//	char query[500];
-//	unsigned now = (unsigned)time(NULL);
-//	sprintf(query,"INSERT INTO TRANSACTION_TABLE "
-//		        "(ID,CREATED,CHANGED,TYPE,SUBSCRIBER,L3TI,CALLED,CALLING,GSMSTATE,SIPSTATE,SIP_CALLID,SIP_PROXY) "
-//		"VALUES  (%u,%u,     %u,     '%s','%s',      %u,'%s',  '%s',   '%s',    '%s',      '%s',      '%s')",
-//		tranID(),now,now,
-//		serviceTypeSS.str().c_str(),
-//		subscriber.c_str(),
-//		mL3TI,
-//		mCalled.digits(),
-//		mCalling.digits(),
-//		stateString,
-//		sipStateSS.str().c_str(),
-//		mDialog->callId().c_str(),
-//		mDialog->proxyIP().c_str()
-//	);
-//
-//	runQuery(query);
-//
-//	if (!channel()) return;
-//	sprintf(query,"UPDATE TRANSACTION_TABLE SET CHANNEL='%s' WHERE ID=%u",
-//			channel()->descriptiveString(), tranID());
-//	runQuery(query);
-//}
-
-
-
-#if UNUSED
-void TranEntry::setChannel(L3LogicalChannel* wChannel)
-{
-	//ScopedLock lock(mLock,__FILE__,__LINE__);
-	mChannel = wChannel;
-
-	char query[500];
-	if (mChannel) {
-		sprintf(query,"UPDATE TRANSACTION_TABLE SET CHANGED=%u,CHANNEL='%s' WHERE ID=%u",
-				(unsigned)time(NULL), mChannel->descriptiveString(), tranID());
-	} else {
-		sprintf(query,"UPDATE TRANSACTION_TABLE SET CHANGED=%u,CHANNEL=NULL WHERE ID=%u",
-				(unsigned)time(NULL), tranID());
-	}
-
-	runQuery(query);
-}
-#endif
-
-
 void TranEntry::setSubscriberImsi(string imsi, bool andAttach)
 {
 	mSubscriber.mImsi = imsi;
@@ -650,17 +538,6 @@ void TranEntryProtected::setGSMState(CallState wState)
 	mStateTimer.now();
 
 	mGSMState = wState;
-#if UNUSED	// We are removing the transaction table, so I'm just taking this out.
-	const char* stateString = CCState::callStateString(wState);
-	assert(stateString);
-
-	unsigned now = mStateTimer.sec();
-	char query[150];
-	sprintf(query,
-		"UPDATE TRANSACTION_TABLE SET GSMSTATE='%s',CHANGED=%u WHERE ID=%u",
-		stateString,now, tranID());
-	runQuery(query);
-#endif
 }
 
 SIP::SipState TranEntry::echoSipState(SIP::SipState state) const
@@ -959,129 +836,6 @@ bool NewTransactionTable::ttSetDialog(TranEntryId tid, SipDialog *dialog)
 	return true;
 }
 
-
-
-#if UNUSED
-TranEntry* NewTransactionTable::ttFindByTypeAndOffset(GSM::TypeAndOffset desc)
-{
-	LOG(DEBUG) << "by type and offset: " << desc;
-
-	ScopedLock lock(mttLock,__FILE__,__LINE__);
-
-	// Yes, it's linear time.
-	// Since clearDeadEntries is also linear, do that here, too.
-	clearDeadEntries();
-
-	// Brute force search.
-	for (NewTransactionMap::iterator itr = mTable.begin(); itr!=mTable.end(); ++itr) {
-		if (itr->second->deadOrRemoved()) continue;
-		const L3LogicalChannel* thisChan = itr->second->channel();
-		if (thisChan->typeAndOffset()!=desc) continue;
-		return itr->second;
-	}
-	//LOG(DEBUG) << "no match for " << *chan << " (" << chan << ")";
-	return NULL;
-}
-#endif
-
-
-#if UNUSED
-TranEntry* NewTransactionTable::ttFindByMobileIDState(const L3MobileIdentity& mobileID, CallState state)
-{
-	LOG(DEBUG) << "by ID and state: " << mobileID << " in " << state;
-
-	ScopedLock lock(mttLock,__FILE__,__LINE__);
-
-	// Yes, it's linear time.
-	// Since clearDeadEntries is also linear, do that here, too.
-	clearDeadEntries();
-
-	// Brute force search.
-	for (NewTransactionMap::iterator itr = mTable.begin(); itr!=mTable.end(); ++itr) {
-		if (itr->second->deadOrRemoved()) continue;
-		if (itr->second->getGSMState() != state) continue;
-		if (itr->second->subscriber() != mobileID) continue;
-		return itr->second;
-	}
-	return NULL;
-}
-#endif
-
-#if UNUSED
-bool NewTransactionTable::isBusy(const L3MobileIdentity& mobileID)
-{
-	LOG(DEBUG) << "id: " << mobileID << "?";
-
-	ScopedLock lock(mttLock,__FILE__,__LINE__);
-
-	// Yes, it's linear time.
-	// Since clearDeadEntries is also linear, do that here, too.
-	clearDeadEntries();
-
-	// Brute force search.
-	for (NewTransactionMap::iterator itr = mTable.begin(); itr!=mTable.end(); ++itr) {
-		if (itr->second->deadOrRemoved()) continue;
-		if (itr->second->subscriber() != mobileID) continue;
-		GSM::L3CMServiceType::TypeCode service = itr->second->servicetype();
-		bool speech =
-			service==GSM::L3CMServiceType::EmergencyCall ||
-			service==GSM::L3CMServiceType::MobileOriginatedCall ||
-			service==GSM::L3CMServiceType::MobileTerminatedCall;
-		if (!speech) continue;
-		// OK, so we found a transaction for this call.
-		bool inCall = CCState::isInCall(itr->second->getGSMState());
-		if (inCall) return true;
-	}
-	return false;
-}
-#endif
-
-#if UNUSED
-// Find the TranEntry that wants to receive this l3msg, if any.
-// Look at the PD and the TI.
-// TODO: Fix this.  When we start a MOC there is no TI yet so the Setup message TI will not match the TranEntry.
-//		If no TranEntry matches the TI, we should call, um, we cant just call the default TranEntry
-//		because the message may be for an old dead TranEntry.  Maybe should just special-case Setup.
-//		Maybe the TranEntry should expectCC(Setup).
-// 		Another way to fix might be to add a default TranEntry for each L3PD, but again that would get dead TIs.
-//		What we really want is a separate MM manager to route the messages.
-TranEntry *NewTransactionTable::ttFindByL3Msg(GSM::L3Message *l3msg, L3LogicalChannel *lch)
-{
-	GSM::L3PD pd = l3msg->PD();
-	ScopedLock lock(gNewTransactionTable.mttLock,__FILE__,__LINE__);
-	for (NewTransactionMap::iterator itr = gNewTransactionTable.mTable.begin(); itr!=gNewTransactionTable.mTable.end(); ++itr) {
-		TranEntry *tran = itr->second;
-		if (tran->deadOrRemoved()) continue;
-		if (! tran->isChannelMatch(lch)) continue;
-		GSM::L3CMServiceType service = tran->service();
-		switch (pd) {
-			case L3CallControlPD:
-				return tran;	// Only one for now.
-				//if (service.isCC() && tran->getL3TI() == dynamic_cast<L3CCMessage*>(l3msg)->TI()) { return tran; }
-				continue;
-			case L3SMSPD:
-				return tran;	// Only one for now.
-				//if (service.isSMS() && tran->getL3TI() == dynamic_cast<L3CPMessage*>(l3msg)->TI()) { return tran; }
-				continue;
-			case L3MobilityManagementPD:
-			case L3RadioResourcePD:
-				// We dont yet have a separate MobilityManagement layer, so MM and RR messages are handled by the primary TranEntry,
-				// which is either the LocationUpdateRequest or the in-progress CC TranEntry, which needs RR messages
-				// to modify the channel for the voice call.
-				if (service.isMM()) { return tran; }
-				if (service.isSMS()) continue;
-				// For now, just assume there is only one transaction, so this must be it.
-				return tran;
-			default:
-				LOG(ERR) << "unrecognized L3"<<LOGVAR(pd);
-				return NULL;	// hopeless.
-		}
-	}
-	return NULL;
-}
-#endif
-
-
 // (pat added) Add a message to the TranEntry inbox.
 void NewTransactionTable::ttAddMessage(TranEntryId tranid,SIP::DialogMessage *dmsg)
 {
@@ -1143,52 +897,6 @@ TranEntry* NewTransactionTable::ttFindHandoverOther(const L3MobileIdentity& mobi
 	}
 	return NULL;
 }
-
-
-
-#if UNUSED
-// Currently unused
-L3LogicalChannel* NewTransactionTable::findChannel(const L3MobileIdentity& mobileID)
-{
-	// Yes, it's linear time.
-	// Even in a 6-ARFCN system, it should rarely be more than a dozen entries.
-
-	ScopedLock lock(mttLock,__FILE__,__LINE__);
-
-	// Since clearDeadEntries is also linear, do that here, too.
-	clearDeadEntries();
-
-	// Brute force search.
-	for (NewTransactionMap::iterator itr = mTable.begin(); itr!=mTable.end(); ++itr) {
-		if (itr->second->deadOrRemoved()) continue;
-		if (! itr->second->subscriber().fmidMatch(mobileID)) continue;
-		L3LogicalChannel* chan = itr->second->channel();
-		if (!chan) continue;
-		if (chan->chtype() == FACCHType) return chan;
-		if (chan->chtype() == SDCCHType) return chan;
-		// (pat) What other channel type could there be?  The SACCH are not returned by channel().
-		assert(0);		// Alert pat if you get this assertion.
-	}
-	return NULL;
-}
-#endif
-
-
-#if UNUSED
-unsigned NewTransactionTable::countChan(const L3LogicalChannel* chan)
-{
-	ScopedLock lock(mttLock,__FILE__,__LINE__);
-	clearDeadEntries();
-	unsigned count = 0;
-	for (NewTransactionMap::iterator itr = mTable.begin(); itr!=mTable.end(); ++itr) {
-		if (itr->second->deadOrRemoved()) continue;
-		if (itr->second->channel() == chan) count++;
-	}
-	return count;
-}
-#endif
-
-
 
 size_t NewTransactionTable::dump(ostream& os, bool showAll) const
 {
@@ -1262,32 +970,6 @@ bool NewTransactionTable::RTPAvailable(unsigned rtpPort)
 	}
 	return avail;
 }
-
-
-
-
-#if 0
-bool NewTransactionTable::outboundReferenceUsed(unsigned ref)
-{
-	// Called is expected to hold mttLock.
-	for (NewTransactionMap::iterator itr = mTable.begin(); itr!=mTable.end(); ++itr) {
-		if (itr->second->deadOrRemoved()) continue;
-		if (itr->second->getGSMState() != GSM::Handover_Outbound) continue;
-		if (itr->second->handoverReference() == ref) return true;
-	}
-	return false;
-}
-
-unsigned NewTransactionTable::generateHandoverReference(TranEntry *transaction)
-{
-	ScopedLock lock(mttLock,__FILE__,__LINE__);
-	clearDeadEntries();
-	unsigned ref = random() % 256;
-	while (outboundReferenceUsed(ref)) { ref = (ref+1) % 256; }
-	transaction->handoverReference(ref);
-	return ref;
-}
-#endif
 
 MachineBase *TranEntry::tePopMachine()
 {
@@ -1366,27 +1048,6 @@ bool TranEntry::handleMachineStatus(MachineStatus status)
 		//return true;	// All others; Message was handled by the current Procedure.
 	}
 
-#if 0
-	switch (status) {
-	case MachineStatusUnexpectedState:			// Invalid procRun argument; very unlikely internal error.
-		LOG(ERR) << "unexpected state";
-		return false;	// unhandled.  Should we keep going anyway?  probably not.
-	case MachineStatusUnexpectedMessage:		// error message printed by caller.
-		LOG(ERR) << "unsupported message";
-		return false;	// unhandled but keep going.
-	case MachineStatusQuit:
-		while (currentProcedure()) {
-			delete tran()->tePopMachine();
-		}
-		teClose();		// Danger will robinson!!!!
-		return true;
-	case MachineStatusUnexpectedPrimitive:
-		LOG(ERR) << "unexpected primitive";	// Dont think this MachineStatus is used anywhere.
-		return false;
-	default:
-		return true;	// All others; Message was handled by the current Procedure.
-	}
-#endif
 	return true;	// unnecessary but makes gcc happy.
 }
 
@@ -1431,28 +1092,6 @@ bool TranEntry::lockAndStart(MachineBase *wProc, GSM::L3Message *l3msg)
 	}
 	return result;
 }
-
-#if UNUSED
-// Send a message to the current Procedure, either l3msg or lch.
-// lch is the channel this message arrived on.  It is information we have, but I dont think it is useful.
-// I wonder if there are any cases where lch may not be the L3LogicalChannel that initiated the Procedure?
-// It probably doesnt matter - we use the L3LogicalChannel to send return messages to the MS,
-// and the initial channel that created the Procedure is probably the correct one.
-// For example if lch is FACCH, we cannot send anything downstrem on that.
-bool TranEntry::lockAndInvokeL3Msg(const GSM::L3Message *l3msg /*, const L3LogicalChannel *lch*/)
-{
-	LOG(DEBUG);
-	bool result = false;
-	RefCntPointer<TranEntry> saver = this;
-	{	ScopedLock lock(mL3RewriteLock,__FILE__,__LINE__);
-		if (MachineBase *proc = currentProcedure()) {
-			LOG(DEBUG) <<"sending l3msg to"<<LOGVAR(proc) <<LOGVAR(l3msg);
-			result = handleMachineStatus(proc->dispatchL3Msg(l3msg));
-		}
-	}
-	return result;
-}
-#endif
 
 // l3msg may be NULL for primitives or unparseable messages.
 bool TranEntry::lockAndInvokeFrame(const L3Frame *frame, const L3Message *l3msg)

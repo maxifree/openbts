@@ -67,21 +67,6 @@ void MsgCommonWrite::writeBitMap(bool*bitmap,unsigned bitmaplen, const char*name
 	}
 }
 
-#if 0
-static void truncateredundant(char *str, int len)
-{
-	char *end = str + len - 1, *cp = end;
-	// Chop off trailing chars that are replicated.
-	int lastch = *cp;
-	for (; cp > str; cp--) {
-		if (*cp != lastch) {
-			if (cp < end-6) { strcpy(cp+2,"..."); }
-			break;
-		}
-	}
-}
-#endif
-
 #define TOHEX(v) ((v) + ((v) < 10 ? '0' : ('a'-10)))
 void MsgCommonText::writeBitMap(bool*bitmap,unsigned bitmaplen, const char*name)
 {

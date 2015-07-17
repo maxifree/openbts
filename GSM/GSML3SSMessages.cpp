@@ -76,27 +76,6 @@ void L3OneByteProtocolElement::parseV(const L3Frame&src, size_t&rp, size_t expec
 	if (expectedLength) { parseV(src,rp); }
 }
 
-#if 0
-// Warning: If the expectedLenght is 0 then parseLV does not call us, so mExtant would be false,
-// but it does not matter anywhere because the Facility mComponentSize is inited to 0 and everything works out.
-void L3SupServFacilityIE::parseV(const L3Frame&src, size_t&rp, size_t expectedLength)
-{
-	assert(expectedLength < 256);
-	mExtant = true;
-	mComponentSize = expectedLength;		// 0 is allowed.
-	for (unsigned i = 0; i < expectedLength; i++) {
-		mComponents[i] = src.readField(rp,8);
-	}
-}
-
-void L3SupServFacilityIE::writeV(L3Frame&dest, size_t&wp) const
-{
-	for (unsigned i = 0; i < mComponentSize; i++) {
-		dest.writeField(wp,mComponents[i],8);
-	}
-}
-#endif
-
 void L3SupServFacilityIE::text(ostream& os) const
 {
 	char rawdata[2*255+1+1];		// Add 1 extra for luck.

@@ -181,22 +181,6 @@ void SipDialogMap::dmAddCallDialog(SipDialog*dialog)
 }
 
 
-#if UNUSED
-// Call the method on each extant SipDialog.
-// The method must be defined in class SipDialog as: void method(SipDialog *);
-void MySipInterface::iterateDialogs(SipDialogMethodPointer method)
-{
-	ScopedLock lock(mDialogMapLock);
-	for (SipDialogMap::iterator it1 = mDialogMap.begin(); it1 != mDialogMap.end(); it1++) {
-		SipDialogList_t &dialogs = it1->second;
-		for (SipDialogList_t::iterator it2 = dialogs.begin(); it2 != dialogs.end(); it2++) {
-			SipDialog *dialog = *it2;
-			(dialog->*method)();
-		}
-	}
-}
-#endif
-
 void SipDialogMap::dmPeriodicService() 
 {
 	try {
@@ -310,25 +294,6 @@ SipDialogRef SipDialogMap::dmFindDialogByRtp(RtpSession *session)
 	}
 	return SipDialogRef();	// An empty one.
 }
-
-#if UNUSED
-SipBase *SipDialogMap::dmFindDialogById(unsigned id)
-{
-#if USE_SCOPED_ITERATORS
-	DialogMap_t::ScopedIterator sit(mDialogMap);
-#else
-	ScopedLock lock(mDialogMap.qGetLock());
-	DialogMap_t::iterator sit;
-#endif
-	for (sit = mDialogMap.begin(); sit != mDialogMap.end(); sit++) {
-		SipDialog *dialog = sit->second;
-		if (dialog->mDialogId == id) {
-			return (SipBase*)dialog;
-		}
-	}
-	return NULL;
-}
-#endif
 
 void SipDialogMap::printDialogs(ostream&os)
 {

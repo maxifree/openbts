@@ -53,45 +53,6 @@ enum L3TimerId {
 typedef enum L3TimerId MMTimerId;
 typedef enum L3TimerId TranTimerId;
 
-// The timer table used for L3Rewrite.
-#if 0
-class L3TimerTable {
-	const char *mNames[cNumTimers];
-	ml3Timers[cNumTimers];
-	//L3Timer mT301, mT302, mT303, mT304, mT305, mT308, mT310, mT313, mT3113, mTRIM;
-
-	initValues {
-		ml3Timers[T301].load(T301ms);
-		ml3Timers[T302].load(T302ms);
-		ml3Timers[T303].load(T303ms);
-		ml3Timers[T304].load(T304ms);
-		ml3Timers[T305].load(T305ms);
-		ml3Timers[T308].load(T308ms);
-		ml3Timers[T310].load(T310ms);
-		ml3Timers[T313].load(T313ms);
-		ml3Timers[T3113].load(T3113ms);
-	};
-	static initNames() {
-		for (TimerTag t = T301; t < cNumTimers; t++) {
-			switch (t) {	// Using a switch forces this map to be kept up-to-date in this idiotic language.
-			case T301: mNames[T301] = "T301"; break;
-			case T302: mNames[T302] = "T302"; break;
-			case T303: mNames[T303] = "T303"; break;
-			case T304: mNames[T304] = "T304"; break;
-			case T305: mNames[T305] = "T305"; break;
-			case T308: mNames[T308] = "T308"; break;
-			case T313: mNames[T313] = "T313"; break;
-			case T3113: mNames[T3113] = "T3113"; break;
-			case TRIM: mNames[TRIM] = "TRIM"; break;
-			case cNumTimers: break;
-			}
-		}
-	}
-	public:
-	L3TimerTable() { initValues(); }
-};
-#endif
-
 const int TimerAbortTran = -1;	// Abort the transaction;  If there are other transactions pending, they may be able to run.
 const int TimerAbortChan = -2;	// Abort the entire MMChannel.
 

@@ -1377,19 +1377,6 @@ ConfigurationKeyMap getConfigurationKeys()
 	map[tmp.getName()] = tmp;
 	}
 
-#if 0	// (pat) obsolete
-	{ ConfigurationKey tmp("GPRS.SGSN.port","1920",
-		"",
-		ConfigurationKey::DEVELOPER,
-		ConfigurationKey::PORT,
-		"",
-		false,
-		"Port number of the SGSN required for GPRS service.  This must match the port specified in the SGSN config file, currently osmo_sgsn.cfg."
-	);
-	map[tmp.getName()] = tmp;
-	}
-#endif
-
 	{ ConfigurationKey tmp("GPRS.TBF.Downlink.Poll1","10",
 		"blocks",
 		ConfigurationKey::DEVELOPER,
@@ -1619,22 +1606,6 @@ ConfigurationKeyMap getConfigurationKeys()
 	);
 	map[tmp.getName()] = tmp;
 	}
-
-#if unused	// (pat 4-24-2014) no longer implemented
-	// (pat) This option is here so it can be disabled to help testing Immediate Assignment Reject behavior;
-	// if this is non-zero you cant test it in the lab because the phone is always close enough to not be rejected.
-	{ ConfigurationKey tmp("GSM.CCCH.FavorTA","0",
-		"",
-		ConfigurationKey::DEVELOPER,
-		ConfigurationKey::VALRANGE,
-		"0:62",
-		true,
-		"When there is congestion, handsets closer to the cell tower than this many timing advance units are processed first.  "
-		"Value 0 disables, ie, all handsets treated equally.  "
-	);
-	map[tmp.getName()] = tmp;
-	}
-#endif
 
 	{ ConfigurationKey tmp("GSM.CellOptions.RADIO-LINK-TIMEOUT","15",	// 15 is roughly 7.5 seconds.
 		"480ms periods",
@@ -3114,23 +3085,6 @@ ConfigurationKeyMap getConfigurationKeys()
 	);
 	map[tmp.getName()] = tmp;
 	}
-
-#if 0
-	//kurtis
-	// (pat 3-2014) Removed.  This is a great idea that cannot work yet in the transceiver because of the order of initialization
-	// dictated by the gConfig implementation.   Furthermore the code in OpenBTS.cpp s botched - it neither parses this for multiple
-	// arguments nor passes it properly, and rather than fix it I am just removing pending a demonstrated need.
-	{ ConfigurationKey tmp("TRX.Args","",
-		"",
-		ConfigurationKey::CUSTOMER,
-		ConfigurationKey::STRING,
-		"",
-		false,
-		"Extra arguments for the Transceiver."
-	);
-	map[tmp.getName()] = tmp;
-	}
-#endif
 
 	{ ConfigurationKey tmp("Test.GSM.SimulatedFER.Downlink","0",
 		"probability in %",

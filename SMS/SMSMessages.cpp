@@ -83,44 +83,6 @@ CPMessage * SMS::parseSMS( const GSM::L3Frame& frame )
 	  RPData*
 
  */
-#if UNUSED
-RPData *SMS::hex2rpdata(const char *hexstring)
-{
-	RPData *rp_data = NULL;
-
-	//LOG(DEBUG) << "SMS RPDU string len: " << strlen(hexstring);
-	BitVector2 RPDUbits(strlen(hexstring)*4);
-	if ((strlen(hexstring) == 0) || !RPDUbits.unhex(hexstring)) {
-		LOG(DEBUG) << "SMS RPDU string is empty";
-		return NULL;
-	}
-	LOG(DEBUG) << "SMS RPDU bits: " << RPDUbits;
-
-	try {
-		RLFrame RPDU(RPDUbits);
-		LOG(DEBUG) << "SMS RPDU: " << RPDU;
-
-		rp_data = new RPData();
-		rp_data->parse(RPDU);
-		LOG(DEBUG) << "SMS RP-DATA " << *rp_data;
-	}
-	catch (SMSReadError) {
-		LOG(WARNING) << "SMS parsing failed (above L3)";
-		// TODO:: send error back to the phone
-		delete rp_data;
-		rp_data = NULL;
-	}
-	catch (L3ReadError) {
-		LOG(WARNING) << "SMS parsing failed (in L3)";
-		// TODO:: send error back to the phone
-		delete rp_data;
-		rp_data = NULL;
-	}
-
-	return rp_data;
-}
-#endif
-
 TLMessage *SMS::parseTPDU(const TLFrame& TPDU, bool directionUplink)
 {
 	LOG(DEBUG) << "SMS: parseTPDU MTI=" << (TLMessage::MessageType)TPDU.MTI();

@@ -115,43 +115,6 @@ struct L3IAPacketAssignment : GenericMessageElement
 	L3IAPacketAssignment() { mPacketAssignmentType = PacketUplinkAssignUninitialized; /*redundant*/ }
 };
 
-
-
-#if 0 // This is currently unused, so lets indicate so.
-/** GSM 04.60 12.13 */
-// NOTE: These are the power control parameters for assignment in GSM 4.60,
-// not the power control parameters for the SI13 rest octets
-// This is NOT a L3ProtocolElement; it is not in TLV format or byte aligned.
-class L3GPRSPowerControlParameters : public GenericMessageElement
-{
-
-	private:
-
-	unsigned mAlpha;	///< GSM 04.60 Table 12.9.2
-	// GSM04.60 12.13
-	// (pat) There are 8 gamma values, one for each channel.
-	// sec 12.13 says the presence/absense of gamma may be used to denote
-	// timeslot for "an uplink TBF", presumably in the absense of a TIMESLOT ALLOCATION IE,
-	// but I dont see which uplink TBF assignment would use that and the spec does not say.
-	// I dont see why you need gamma in the SI13 message at all; Gamma is assigned
-	// in the uplink/downlink assignment messages as a non-optional element.
-	// I am going to leave them out entirely for now.
-	// unsigned mGamma[8];
-	// bool mGammaPresent[8];
-
-	public:
-
-	// Init alpha to the defalt value.
-	L3GPRSPowerControlParameters() : mAlpha(GPRS::GetPowerAlpha()) {}
-
-	size_t lengthBits() const { return 4+8; }
-	void writeBits(L3Frame& dest, size_t &wp) const;
-	void text(std::ostream& os) const;
-	//void parseV( const L3Frame&, size_t&, size_t) { abort(); }
-	//void parseV(const L3Frame&, size_t&) { abort(); }
-};
-#endif
-
 /** GSM 04.08 10.5.2.37b Power Control Parameters for SI13 Rest Octets */
 // Info has moved to 44.060 12.13.
 // NOTE: This is not the same as the Global Power Control Parameters

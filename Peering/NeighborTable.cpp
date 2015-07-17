@@ -620,30 +620,6 @@ std::vector<unsigned> NeighborTable::getARFCNs() const
 #endif
 }
 
-
-
-#if unused
-int NeighborTable::getBCCSet() const
-{
-	int set = 0;
-	static const char query[] = "SELECT BSIC FROM NEIGHBOR_TABLE";
-	sqlite3_stmt *stmt;
-	int prc = sqlite3_prepare_statement(mDB,&stmt,query);
-	if (prc) {
-		LOG(ALERT) << "cannot prepare statement for " << query;
-		return -1;
-	}
-	int src = sqlite3_run_query(mDB,stmt);
-	while (src==SQLITE_ROW) {
-		unsigned BCC = sqlite3_column_int(stmt,0);
-		set |= (1 << BCC);
-		src = sqlite3_step(stmt);
-	}
-	sqlite3_finalize(stmt);
-	return set;
-}
-#endif
-
 string NeighborEntry::neC0PlusBSIC() const
 {
 	return format("%d:%d",(int)mC0,(int)mBSIC);

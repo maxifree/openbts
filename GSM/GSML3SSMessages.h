@@ -106,34 +106,6 @@ class L3SupServFacilityIE : public L3OctetAlignedProtocolElement
 	void text(std::ostream&) const;
 	L3SupServFacilityIE(std::string wData) : L3OctetAlignedProtocolElement(wData) {}
 	L3SupServFacilityIE() {}
-#if 0
-	protected:
-	unsigned char mComponents[255];	// (pat) Content described in 24.080 3.6.1.
-	size_t mComponentSize;
-	public:
-	Bool_z mExtant;
-
-	L3SupServFacilityIE(const char *wComponents, size_t wComponentSize)
-		:L3ProtocolElement(),
-		mComponentSize(wComponentSize)
-	{
-		devassert(wComponentSize<256);
-		if (mComponentSize >=256) { mComponentSize = 255; }
-		mExtant = true;
-		memcpy(mComponents,wComponents,mComponentSize);
-	}
-
-	L3SupServFacilityIE():L3ProtocolElement(),mComponentSize(0) { }
-
-	size_t componentSize() const { return mComponentSize; }
-	const unsigned char* components() const { return mComponents; }
-
-	size_t lengthV() const { return mComponentSize; }
-   	void writeV(L3Frame&dest, size_t&wp) const;
-	// This parse just cracks the components out.
-	void parseV(const L3Frame&src, size_t&rp, size_t expectedLength);	// This form must be used for TLV format.
-	void parseV(const L3Frame&, size_t&) { assert(0); }		// This form illegal for T/TV format.
-#endif
 };
 
 // 24.008 10.5.4.24

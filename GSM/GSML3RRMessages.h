@@ -1202,39 +1202,6 @@ class L3PhysicalInformation : public L3RRMessageNRO {
 };
 
 
-
-#if 0
-/**
-	GSM 04.08 9.1.14
-	This messages has no parse or write methods, but is used to
-	transfer information from L1 to the control layer.
-*/
-class L3HandoverAccess : public L3RRMessageNRO {
-
-	protected:
-
-	unsigned mReference;
-	float mTimingError;
-	float mRSSI;
-
-	public:
-
-	L3HandoverAccess(unsigned wReference, unsigned wTimingError, float wRSSI)
-		:L3RRMessageNRO(),
-		mReference(wReference),mTimingError(wTimingError),mRSSI(wRSSI)
-	{ }
-
-	int MTI() const { return (int) HandoverAccess; }
-
-	size_t l2BodyLength() const { return 1; }
-
-	unsigned reference() const { return mReference; }
-	float timingError() const { return mTimingError; }
-	float RSSI() const { return mRSSI; }
-};
-#endif
-
-
 } // GSM
 
 #endif

@@ -64,9 +64,6 @@ class L3CellOptionsBCCH : public L3ProtocolElement {
 	void text(std::ostream&) const;
 };
 
-
-
-
 /** Cell Options (SACCH), GSM 04.08 10.5.2.3a */
 class L3CellOptionsSACCH : public L3ProtocolElement {
 
@@ -96,10 +93,6 @@ class L3CellOptionsSACCH : public L3ProtocolElement {
 	void text(std::ostream&) const;
 	
 };
-
-
-
-
 
 /** Cell Selection Parameters, GSM 04.08 10.5.2.4 */
 class L3CellSelectionParameters : public L3ProtocolElement {
@@ -135,9 +128,6 @@ class L3CellSelectionParameters : public L3ProtocolElement {
 
 };
 
-
-
-
 /** Control Channel Description, GSM 04.08 10.5.2.11 */
 class L3ControlChannelDescription : public L3ProtocolElement {
 
@@ -170,8 +160,6 @@ class L3ControlChannelDescription : public L3ProtocolElement {
 };
 
 extern L3ControlChannelDescription *gControlChannelDescription;
-
-
 
 /**
 	A generic frequency list element base class, GSM 04.08 10.5.2.13.
@@ -219,8 +207,6 @@ class L3FrequencyList : public L3ProtocolElement {
 	//@}
 };
 
-
-
 /**
 	Cell Channel Description, GSM 04.08 10.5.2.1b.
 	This element is used to provide the Cell Allocation
@@ -241,10 +227,6 @@ class L3CellChannelDescription : public L3FrequencyList {
 	void writeV(L3Frame& dest, size_t &wp) const;
 
 };
-
-
-
-
 
 /**
 	Neighbor Cells Description, GSM 04.08 or 44.018 10.5.2.22 and 10.5.2.1b
@@ -276,9 +258,6 @@ class L3NeighborCellsDescription : public L3FrequencyList {
 
 };
 
-
-
-
 /** NCC Permitted, GSM 04.08 10.5.2.27 */
 class L3NCCPermitted : public L3ProtocolElement {
 
@@ -303,8 +282,6 @@ class L3NCCPermitted : public L3ProtocolElement {
 	void text(std::ostream&) const;
 
 };
-
-
 
 // T3126 is how long the MS listens to CCCH after a RACH, and is dependent on parameters broadcast in L3RACHControlParameters.
 // 4.08/24.008 says value is T+2S but no longer than 5secs, where T and S are defined in 44.018 3.3.1.2:
@@ -365,10 +342,6 @@ class L3RACHControlParameters : public L3ProtocolElement {
 
 };
 
-
-
-
-
 /** PageMode, GSM 04.08 10.5.2.26 */
 // (pat) The page mode is included in Immediate Assignment and Paging messages.
 // If the message is sent on a paging channel, it applies to ALL MS using that paging channel, not just the addressed MS.
@@ -396,8 +369,6 @@ public:
 
 };
 
-
-
 /** DedicatedModeOrTBF, GSM 04.08 10.5.2.25b */
 class L3DedicatedModeOrTBF : public L3ProtocolElement {
 
@@ -421,8 +392,6 @@ public:
 	void text(std::ostream&) const;
 
 };
-
-
 
 /** ChannelDescription, GSM 04.18 10.5.2.5
 	(pat) The Packet Channel Description, GSM 04.18 10.5.2.25a, is the
@@ -502,11 +471,6 @@ class L3ChannelDescription2 : public L3ChannelDescription {
 	L3ChannelDescription2() { }
 };
 
-
-
-
-
-
 /** RequestReference, GSM 04.08 10.5.2.30 */
 class L3RequestReference : public L3ProtocolElement
 {
@@ -543,8 +507,6 @@ public:
 
 };
 
-
-
 /** Timing Advance, GSM 04.08 10.5.2.40 */
 class L3TimingAdvance : public L3ProtocolElement
 {
@@ -568,9 +530,6 @@ public:
 	void text(std::ostream&) const;
 
 };
-
-
-
 
 /** GSM 04.08 10.5.2.31 */
 // 44.018 10.5.2.31
@@ -596,10 +555,6 @@ class L3RRCauseElement : public L3ProtocolElement
 
 };
 
-
-
-
-
 /** GSM 04.08 10.5.2.28 */
 class L3PowerCommand : public L3ProtocolElement
 {
@@ -619,8 +574,6 @@ public:
 	void text(std::ostream&) const;
 
 };
-
-
 
 /** GSM 04.08 10.5.2.6 */
 class L3ChannelMode : public L3ProtocolElement {
@@ -658,7 +611,6 @@ public:
 	void text(std::ostream&) const;
 
 };
-
 
 // 3GPP 44.018 10.5.2.21aa
 // (pat) 10-2012: Multi-rate element needed for AMR codecs when L3ChannelMode is set to SpeechV3.
@@ -699,9 +651,6 @@ class L3MultiRateConfiguration : public L3ProtocolElement {
 };
 
 std::ostream& operator<<(std::ostream&, L3ChannelMode::Mode);
-
-
-
 
 /** GSM 04.08 10.5.2.43 */
 class L3WaitIndication : public L3ProtocolElement {
@@ -751,7 +700,6 @@ class L3APDUID : public L3ProtocolElement {
 
 };
 
-
 /** GSM 04.08 10.5.2.49 */
 class L3APDUFlags : public L3ProtocolElement {
 
@@ -779,7 +727,6 @@ class L3APDUFlags : public L3ProtocolElement {
 	void text(std::ostream& os) const;
 
 };
-
 
 /** GSM 04.08 10.5.2.50 */
 class L3APDUData : public L3ProtocolElement {
@@ -811,9 +758,6 @@ class L3APDUData : public L3ProtocolElement {
 	void text(std::ostream& os) const;
 
 };
-
-
-
 
 /** GSM 04.08 10.5.2.20 */
 // (pat) Also see 5.08
@@ -906,7 +850,6 @@ class L3MeasurementResults : public L3ProtocolElement {
 
 };
 
-
 /** GSM 04.08 10.5.2.2 */
 class L3CellDescription : public L3ProtocolElement {
 
@@ -932,7 +875,6 @@ class L3CellDescription : public L3ProtocolElement {
 	void parseV(const L3Frame&, size_t& , size_t) { assert(0); }
 	void text(std::ostream&) const;
 };
-
 
 /** GSM 04.08 10.5.2.15 */
 class L3HandoverReference : public L3ProtocolElement
@@ -1034,21 +976,14 @@ class L3SynchronizationIndication : public L3ProtocolElement
 	unsigned ROT() const { return mROT; }
 };
 
-
 /** GSM 04.08 10.5.2.28a */
 // (pat) Defaults to 0 which is maximum possible power.
 class L3PowerCommandAndAccessType : public L3PowerCommand { };
-
-
-
-
-
 
 /** A special subclass for rest octets, just in case we need it later. */
 class L3RestOctets : public L3ProtocolElement {
 
 };
-
 
 class L3SI3RestOctets : public L3RestOctets {
 
@@ -1076,74 +1011,6 @@ class L3SI3RestOctets : public L3RestOctets {
 	void text(std::ostream& os) const;
 
 };
-
-
-#if 0
-/** GSM 04.60 12.24 */
-// (pat) Someone kindly added this before I got here.
-// This info is included in the SI13 rest octets.
-class L3GPRSCellOptions : public L3ProtocolElement {
-
-	private:
-
-	unsigned mNMO;			// Network Mode of Operation See GSM 03.60 6.3.3.1
-	unsigned mT3168;		// range 0..7
-	unsigned mT3192;		// range 0..7
-	unsigned mDRX_TIMER_MAX;
-	unsigned mACCESS_BURST_TYPE;
-	unsigned mCONTROL_ACK_TYPE;
-	unsigned mBS_VC_MAX;
-
-	public:
-
-	L3GPRSCellOptions()
-		:L3ProtocolElement(),
-		mNMO(2),	// (pat) 2 == Network Mode of Operation III, which means
-					// GPRS attached MS uses Packet Paging channel
-					// if allocated (which it wont be), otherwise CCCH.
-		mT3168(gConfig.getNum("GPRS.CellOptions.T3168Code")),
-		mT3192(gConfig.getNum("GPRS.CellOptions.T3192Code")),
-		mDRX_TIMER_MAX(gConfig.getNum("GPRS.CellOptions.DRX_TIMER_MAX")),
-		mACCESS_BURST_TYPE(0),	// (pat) 0 == use 8 bit format of Packet Channel Request Message.
-		mCONTROL_ACK_TYPE(1),	// (pat) 1 == default format for Packet Control Acknowledgement
-								// is RLC/MAC block, ie, not special.
-		mBS_VC_MAX(gConfig.getNum("GPRS.CellOptions.BS_VC_MAX"))
-	{ }
-
-	size_t lengthV() const { return 2+3+3+3+1+1+4+1+1; }
-	void writeV(L3Frame& dest, size_t &wp) const;
-	void parseV( const L3Frame&, size_t&, size_t) { abort(); }
-	void parseV(const L3Frame&, size_t&) { abort(); }
-	void text(std::ostream& os) const;
-};
-#endif
-
-
-
-#if 0
-/** GSM 04.60 12.13 */
-class L3GPRSPowerControlParameters : public L3ProtocolElement {
-
-	private:
-
-	unsigned mALPHA;	///< GSM 04.60 Table 12.9.2
-
-	public:
-
-	L3GPRSPowerControlParameters()
-		:L3ProtocolElement(),
-		mALPHA(gConfig.getNum("GPRS.PowerControl.ALPHA"))
-	{ }
-
-	size_t lengthV() const { return 4+8; }
-	void writeV(L3Frame& dest, size_t &wp) const;
-	void parseV( const L3Frame&, size_t&, size_t) { abort(); }
-	void parseV(const L3Frame&, size_t&) { abort(); }
-	void text(std::ostream& os) const;
-};
-#endif
-
-
 
 /** GSM 04.08 10.5.2.37b */
 class L3SI13RestOctets : public L3RestOctets {
@@ -1202,9 +1069,6 @@ unsigned countBeaconTimeslots(int BS_CC_CHANS);
 
 } // GSM
 
-
 #endif
-
-
 
 // vim: ts=4 sw=4

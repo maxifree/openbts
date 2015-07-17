@@ -263,33 +263,4 @@ bool PhysicalStatus::setPhysical(const SACCHLogicalChannel* chan,
 #endif
 }
 
-#if 0
-void PhysicalStatus::dump(ostream& os) const
-{
-	sqlite3_stmt *stmt;
-	sqlite3_prepare_statement(mDB, &stmt,
-		"SELECT CN,TN,TYPE_AND_OFFSET,FER,RSSI,TRANS_PWR,TIME_ADVC,RXLEV_FULL_SERVING_CELL,RXQUAL_FULL_SERVING_CELL_BER FROM PHYSTATUS");
-
-	while (sqlite3_run_query(mDB,stmt) == SQLITE_ROW) {
-		os << setw(2) << sqlite3_column_int(stmt, 0) << " " << sqlite3_column_int(stmt, 1);
-		os << " " << setw(9) << (TypeAndOffset)sqlite3_column_int(stmt, 2);
-
-		char buffer[1024];
-		sprintf(buffer, "%10d %5.2f %4d %5d %4d",
-			sqlite3_column_int(stmt, 3),
-			100.0*sqlite3_column_double(stmt, 4), (int)round(sqlite3_column_double(stmt, 5)),
-			sqlite3_column_int(stmt, 6), sqlite3_column_int(stmt, 7));
-		os << " " << buffer;
-
-		sprintf(buffer, "%5d %5.2f",
-			sqlite3_column_int(stmt, 8), 100.0*sqlite3_column_double(stmt, 9));
-		os << " " << buffer;
-
-		os << endl;
-	}
-	sqlite3_finalize(stmt);
-}
-#endif
-
-
 // vim: ts=4 sw=4

@@ -272,17 +272,6 @@ void HandoverDetermination(const L3MeasurementResults* measurements, SACCHLogica
 	// We don't set the handover reference or state until we get RSP HANDOVER.
 
 	// TODO: Check for handover request to our own BTS and avoid it.  Dont forget to check the port too. 
-#if 0  // This did not work for some reason.
-	struct sockaddr_in peerAddr;
-	if (resolveAddress(&peerAddr,peerstr.c_str())) {
-		LOG(ALERT) "handover"<<LOGHEX(peerAddr.sin_addr.s_addr)<<LOGHEX(inet_addr("127.0.0.1"))<<LOGVAR(peerAddr.sin_port)<<LOGVAR(gConfig.getNum("Peering.Port"));
-		if (peerAddr.sin_addr.s_addr == inet_addr("127.0.0.1") &&
-			peerAddr.sin_port == gConfig.getNum("Peering.Port")) {
-			LOG(ERR) << "Attempted handover to self ignored.";
-			return;
-		}
-	}
-#endif
 
 	// Form and send the message.
 	// This message is re-sent every 0.5s (the periodicity of measurement reports) until the peer answers.

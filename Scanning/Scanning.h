@@ -109,52 +109,6 @@ class SpectrumMap {
 
 };
 
-
-#if 0
-class BTSRecord {
-
-	private:
-
-	GSM::GSMBand mBand;
-	unsigned mC0;
-	unsigned mMCC;
-	unsigned mMNC;
-	unsigned mLAC;
-	unsigned mCI;
-	unsigned mBSIC;
-	float mFreqOffset;
-	ARFCNList mNeighbors;
-	ARFCNList mCA;
-
-	public:
-
-	BTSRecord(
-		GSM::GSMBand wBand,
-		unsigned wC0,
-		unsigned wMCC, unsigned wMNC, unsigned wLAC,
-		unsigned wCI,
-		unsigned wBSIC,
-		float wFreqOffset)
-		:mBand(wBand),mC0(wC0),
-		mMCC(wMCC),mMNC(wMNC),mLAC(wLAC),
-		mCI(wCI),
-		mBSIC(wBSIC),
-		mFreqOffset(wFreqOffset)
-	{ }
-
-	void neighbors(const ARFCNList& wNeighbors)
-		{ mNeighbors = wNeighbors; }
-
-	void CA(const ARFCNList& wCA)
-		{ mCA = wCA; }
-
-	/** Return a key string based on MCC:MNC:LAC:CI that is unique for this BTS. */
-	std::string keyString() const;
-
-};
-#endif
-
-
 /** A list of ARFCNs waiting to be scanned. */
 class ScanList {
 

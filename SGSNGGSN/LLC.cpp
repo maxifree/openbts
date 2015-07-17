@@ -724,16 +724,6 @@ void LlcParity::appendFCS(ByteVector &bv)
 	bv.appendByte(fcs&0xff);
 	bv.appendByte((fcs>>8)&0xff);
 	bv.appendByte((fcs>>16)&0xff);
-
-	// Double check:
-#if 0
-	uint32_t oldcrc = gprs_llc_fcs(bv.begin(),bv.size()-3);
-	if (fcs != oldcrc) {
-		printf("CRC ERROR: old=%d new=%d\n",oldcrc,fcs);
-	} else {
-		printf("CRC matches\n");
-	}
-#endif
 }
 
 // Check the FCS in the last 3 bytes of bytevector.

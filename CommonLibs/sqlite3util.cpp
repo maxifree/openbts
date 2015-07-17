@@ -202,57 +202,6 @@ bool sqlite3_single_lookup(sqlite3* DB, const char *tableName,
 	return retVal;
 }
 
-#if 0	// This code works fine, but sqlQuery is a better way.
-// If result is a row return the sqlite3_stmt, else NULL.
-// Pass a comma-separated list of column names to return, or if you want all the columns in the result, pass "*" as the resultColumns.
-// Almost all the other functions below could use this.
-sqlite3_stmt *sqlite_lookup_row(sqlite3*db, const char *tableName, const char* condition, const char *resultColumns)
-{
-	int retries = 5;
-	size_t stringSize = sqlBufferSize + strlen(resultColumns) + strlen(tableName) + strlen(condition);
-	char query[stringSize];
-	snprintf(query,stringSize,"SELECT %s FROM %s %s",resultColumns,tableName,condition);
-	// Prepare the statement.
-	sqlite3_stmt *stmt;
-	if (sqlite3_prepare_statement(db,&stmt,query,retries)) return NULL;
-	// Read the result.
-	int src = sqlite3_run_query(db,stmt,retries);
-	if (src == SQLITE_ROW) {
-		return stmt;	// Caller must sqlite3_finalize();
-	}
-	sqlite3_finalize(stmt);
-	return NULL;
-}
-sqlite3_stmt *sqlite_lookup_row_c(sqlite3*db, const char *tableName, const char* keyName, const char *keyData, const char *resultColumns)
-{
-	char conditionBuffer[sqlBufferSize];
-	return sqlite_lookup_row(db,tableName,condition_c(conditionBuffer,keyName,keyData),resultColumns);
-}
-sqlite3_stmt *sqlite_lookup_row_u(sqlite3*db, const char *tableName, const char* keyName, unsigned keyValue, const char* resultColumns)
-{
-	char conditionBuffer[sqlBufferSize];
-	return sqlite_lookup_row(db,tableName,condition_u(conditionBuffer,keyName,keyValue),resultColumns);
-}
-// Pass a comma-separated list of column names to return, or if you want all the columns in the result, pass "*" as the resultColumns.
-vector<string> sqlite_multi_lookup_vector(sqlite3* db, const char* tableName, const char* keyName, const char* keyData, const char *resultColumns)
-{
-	vector<string> result;
-	if (sqlite3_stmt *stmt = sqlite_lookup_row_c(db,tableName,keyName,keyData,resultColumns)) {
-		int n = sqlite3_column_count(stmt);
-		if (n < 0 || n > 100) { goto done; }	// Would like to LOG an error but afraid to use LOG in here.
-		result.reserve(n+1);
-		for (int i = 0; i < n; i++) {
-			const char* ptr = (const char*)sqlite3_column_text(stmt,i);
-			result.push_back(ptr ? string(ptr,sqlite3_column_bytes(stmt,i)) : string(""));
-		}
-		done:
-		sqlite3_finalize(stmt);
-	}
-	return result;
-}
-#endif
-
-
 bool sqlite_single_lookup(sqlite3* db, const char* tableName,
 		const char* keyName, const char* keyData,
 		const char* resultName, string &resultData)
@@ -263,16 +212,6 @@ bool sqlite_single_lookup(sqlite3* db, const char* tableName,
 		return true;
 	}
 	return false;
-#if 0
-	if (sqlite3_stmt *stmt = sqlite_lookup_row_c(db,tableName,keyName,keyData,valueName)) {
-		if (const char* ptr = (const char*)sqlite3_column_text(stmt,0)) {
-			valueData = string(ptr,sqlite3_column_bytes(stmt,0));
-		}
-		sqlite3_finalize(stmt);
-		return true;
-	}
-	return false;
-#endif
 }
 
 bool sqlite_single_lookup(sqlite3* db, const char* tableName,
@@ -285,16 +224,6 @@ bool sqlite_single_lookup(sqlite3* db, const char* tableName,
 		return true;
 	}
 	return false;
-#if 0
-	if (sqlite3_stmt *stmt = sqlite_lookup_row_u(db,tableName,keyName,keyValue,valueName)) {
-		if (const char* ptr = (const char*)sqlite3_column_text(stmt,0)) {
-			valueData = string(ptr,sqlite3_column_bytes(stmt,0));
-		}
-		sqlite3_finalize(stmt);
-		return true;
-	}
-	return false;
-#endif
 }
 
 // Do the lookup and just return the string.
@@ -303,11 +232,6 @@ string sqlite_single_lookup_string(sqlite3* db, const char* tableName,
 		const char* keyName, const char* keyData, const char* resultName)
 {
 	return sqlQuery(db,tableName,resultName,keyName,keyData).getResultText();
-#if 0
-	string result;
-	(void) sqlite_single_lookup(db,tableName,keyName,keyData,valueName,result);
-	return result;
-#endif
 }
 
 

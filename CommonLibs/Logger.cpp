@@ -362,15 +362,6 @@ void LogGroup::LogGroupInit()
 		mDebugLevel[g] = 0;
 		mWatchLevel[g] = 0;
 	}
-
-#if 0
-	if (mGroupNameToIndex.size()) { return; }	// inited previously.
-	mGroupNameToIndex[string("Control")] = Control;
-	mGroupNameToIndex[string("SIP")] = SIP;
-	mGroupNameToIndex[string("GSM")] = GSM;
-	mGroupNameToIndex[string("GPRS")] = GPRS;
-	mGroupNameToIndex[string("Layer2")] = Layer2;
-#endif
 }
 
 

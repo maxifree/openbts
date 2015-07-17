@@ -232,17 +232,6 @@ static void GmmRemove(GmmInfo *gmm)
 			si->sirm();	// yes this is suboptimal, but list is short
 		}
 	}
-#if 0
-	for (SgsnInfoList_t::iterator itr = sSgsnInfoList.begin(); itr != sSgsnInfoList.end(); ) {
-		SgsnInfo *si = *itr;
-		if (si->getGmm() == gmm) {
-			itr = sSgsnInfoList.erase(itr);
-			delete si;
-		} else {
-			itr++;
-		}
-	}
-#endif
 	sGmmInfoList.remove(gmm);
 	delete gmm;
 }
@@ -761,15 +750,6 @@ static void handleAttachRequest(SgsnInfo *si, L3GmmMsgAttachRequest &armsg)
 		//SgsnInfo *si2 = Sgsn::findAssignedSgsnInfoByImsi(imsi);
 		//newptmsi = si2->mMsHandle;
 	}
-#if 0
-	// We dont care if the MS already had a P-TMSI.
-	// If it is doing an attach, go ahead and assign a new one.
-	if (!si->mAllocatedTmsiTlli) {
-		si->mAllocatedTmsiTlli = Sgsn::allocateTlli();
-	}
-	// We cant set the tlli in the MS until it has received the new tlli,
-	// because we have to use the previous tlli to talk to it.
-#endif
 	// This was for testing:
 	//L3GmmMsgIdentityRequest irmsg;
 	//si->sgsnWriteHighSideMsg(irmsg);
@@ -804,29 +784,6 @@ static void handleAttachComplete(SgsnInfo *si, L3GmmMsgAttachComplete &acmsg)
 	si->changeTlli(true);
 #endif
 	addShellRequest("GprsAttach",gmm);
-
-#if 0 // nope, we are going to pass the TLLI down with each message and let GPRS deal with it.
-	//if (! Sgsn::isUmts()) {
-	//	// Update the TLLI in all the known MS structures.
-	//	// Only the SGSN knows that the MSInfo with these various TLLIs
-	//	// are in fact the same MS.  But GPRS needs to know because
-	//	// the MS will continue to use the old TLLIs, and it will botch
-	//	// up if, for example, it is in the middle of a procedure on one TLLI
-	//	// and the MS is using another TLLI, which is easy to happen given the
-	//	// extremely long lag times in message flight.
-	//	// The BSSG spec assumes there only two TLLIs, but I have seen
-	//	// the Blackberry use three simultaneously.
-	//	SgsnInfo *sip;
-	//	uint32_t newTlli = gmm->getTlli();
-	//	RN_FOR_ALL(SgsnInfoList_t,sSgsnInfoList,sip) {
-	//		if (sip->getGmm == gmm) {
-	//			UEAdapter *ms = sip->getMS();
-	//			// or should we set the ptmsi??
-	//			if (ms) ms->changeTlli(newTlli);
-	//		}
-	//	}
-	//}
-#endif
 }
 
 static void handleDetachRequest(SgsnInfo *si)

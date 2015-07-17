@@ -179,35 +179,4 @@ class RListIteratorThreadSafe : public ScopedIterator<T>
 		var##_itr++)
 */
 
-
-#if 0
-// For your edification, these are the old functions.
-
-// Does the list contain the element?  Return TRUE if so.
-template<class T>
-bool findlistrev(std::list<T> list, T element, typename std::list<T>::reverse_iterator *result = 0) {
-	for (typename std::list<T>::reverse_iterator itr = list.rbegin(); itr != list.rend(); itr++) {
-		if (*itr == element) {
-			if (result) *result = itr;
-			return true;
-		}
-	}
-	return false;
-	// This did not work?
-	// return std::find(msPCHDowns.begin(),msPCHDowns.end(),(const PDCHL1Downlink*)down) != msPCHDowns.end();
-}
-
-template<class T>
-bool findlist(std::list<T> list, T element, typename std::list<T>::iterator *result = 0) {
-	for (typename std::list<T>::iterator itr = list.begin(); itr != list.end(); itr++) {
-		if (*itr == element) {
-			if (result) *result = itr;
-			return true;
-		}
-	}
-	return false;
-	// This did not work?
-	// return std::find(msPCHDowns.begin(),msPCHDowns.end(),(const PDCHL1Downlink*)down) != msPCHDowns.end();
-}
-#endif
 #endif

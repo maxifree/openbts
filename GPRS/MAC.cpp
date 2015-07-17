@@ -1854,16 +1854,13 @@ static void processBSSGMessages()
 				ms = bssgMSChangeTLLI(dlmsg->mbdOldTLLI,dlmsg->mbdTLLI);
 			}
 			if (!ms) { ms = gL2MAC.macFindMSByTlli(dlmsg->mbdTLLI, true); }
-#if 0	// Code prior to internal sgsn
-			ms->msDownlinkQueue.write(dlmsg);
-#else
+
 			SGSN::GprsSgsnDownlinkPdu *dlpdu = new SGSN::GprsSgsnDownlinkPdu(dlmsg->mbdPDU,ms->msTlli,0,"BSSGMsgDlUnitData");
 			//devassert(dlmsg->getRefCnt() == 2);
 			//dlpdu->mDlData = dlmsg->mbdPDU;
 			//dlpdu->mDescr = "BSSGMsgDLUnitData";
 			delete dlmsg;
 			ms->msDownlinkQueue.write(dlpdu);
-#endif
 
 			// If the MS queue is too full, we should do flow control,
 			// but the sgsn does not implement it yet, so not much point.
@@ -2012,26 +2009,6 @@ void L2MAC::macCheckChannels()
 		// PACCH selection and extended uplink TBF both eexpect it.
 		gL2MAC.macPDCHs.sort(chCompareFunc);
 	}
-#if 0
-	int minchans = configGprsChannelsMin();
-	if (minchans > 0) {
-		// We are doing startup.  Allocate the initial channels from CN0.
-		int need = minchans - (int)macActiveChannels();
-		TCHFACCHLogicalChannel *lchan;
-		// Allocate from CN0 first.
-		for ( ; need > 0 && (lchan = gBTS.getTCH(true,true)); need--) {
-			macAddOneChannel(lchan);
-		}
-		// If we still need more, allocate them from the end of the list.
-		int nfound;
-		TCHFACCHLogicalChannel *results[8];
-		for ( ; need > 0 && (nfound = gBTS.getTCHGroup(need,results)); need -= nfound) {
-			for (int i = 0; i < nfound; i++) {
-				macAddOneChannel(results[i]);
-			}
-		}
-	}
-#endif
 
 	// TODO: Switch code to new channel allocator, but this code
 	// will move to where the channels are allocated, not here.

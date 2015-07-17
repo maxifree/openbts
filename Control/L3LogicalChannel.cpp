@@ -310,20 +310,6 @@ void L3LogicalChannel::reassignComplete()
 	//chanSetState(L3LogicalChannel::chReassignComplete);	// Redundant with sending the HARDRELEASE, this will cause the service loop to exit.
 }
 
-#if UNUSED
-void L3LogicalChannel::chanLost()
-{
-	LOG(DEBUG)<<this;
-	// Just in case this gets called with a next channel, release it too, although it would eventually time out on its own.
-	if (mNextChan) {
-		mNextChan->chanSetState(L3LogicalChannel::chReassignFailure);
-		//mNextChan->mPrevChan = NULL;
-		mNextChan = NULL;
-	}
-	chanFreeContext();
-}
-#endif
-
 // Set the flag, which will perform the channel release from the channel serviceloop.
 void L3LogicalChannel::chanRelease(Primitive prim,TermCause cause)
 {

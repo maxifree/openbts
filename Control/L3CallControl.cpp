@@ -159,21 +159,6 @@ void startMOC(const GSM::L3MMMessage *l3msg, MMContext *dcch, CMServiceTypeCode 
 	tran->lockAndStart(mocp,(GSM::L3Message*)l3msg);
 }
 
-#if UNUSED
-//MachineStatus ProcedureDetach::machineRunState(int state, const GSM::L3Message* l3msg, const SIP::DialogMessage *sipmsg) 
-//{
-//	PROCLOG2(DEBUG,state)<<LOGVAR(l3msg)<<LOGVAR(sipmsg)<<LOGVAR2("imsi",tran()->subscriber());
-//	getDialog()->dialogCancel();  // reudundant, chanLost would do it.  Does nothing if dialog not yet started.
-//	setGSMState(CCState::NullState);	// redundant, we are deleting this transaction.
-//	channel()->l3sendm(L3ChannelRelease());
-//	channel()->chanRelease(HARDRELEASE);
-//	//channel()->l3sendp(HARDRELEASE);
-//	//channel()->chanLost();
-//	return MachineStatusOK;
-//}
-#endif
-
-
 // Identical to teCloseCallNow.
 MachineStatus CCBase::sendReleaseComplete(TermCause cause, bool sendCause)
 {
@@ -530,95 +515,6 @@ MachineStatus MOCMachine::machineRunState(int state, const GSM::L3Message *l3msg
 				return sendCMServiceReject(L3RejectCause::IMSI_Unknown_In_VLR,true);
 			}
 		}
-
-#if 0	// (pat) 9-15-2013: replaced with code to call the common L3IdentifyMachine.
-		case L3CASE_MM(CMServiceRequest): {
-			const L3CMServiceRequest *req = dynamic_cast<typeof(req)>(l3msg);
-			// We dont want to leave our GSMState indicator in NullState once we start
-			// doing things here, so we want to change the state to something.
-			// On receipt of CMServiceRequest we are doing MM procedures so you would think there is
-			// no CC state yet, but apparently that is not the case; see comments at CCState::MOCInitiated,
-			// indicating that this state is correct.
-			setGSMState(CCState::MOCInitiated);
-			// There is no specific timer in the documentation on the network side for this case.
-			// T303 is defined on the MS side, and we use that.  It is a generic 30 second timer.
-			timerStart(T303,T303ms,TimerAbortTran);	// MS side: start CMServiceRequest sent; stop CallProceeding received.
-
-			// If we got a TMSI, find the IMSI.
-			// Note that this is a copy, not a reference.
-			GSM::L3MobileIdentity mobileID = req->mobileID();
-
-			// ORIGINAL CODE: resolveIMSI(mobileID,LCH);
-
-			// I think other messages are errors during this part of the state diagram, but the old
-			// code ignored them (rather, it set the state improperly which error was later corrected)
-			// while waiting for the RR AssignmentComplete message so I will too.
-
-			// Pat says: Take care that RRLP does not use up the 30 second T303 timer running in the MS now.
-			if (gConfig.getBool("Control.Call.QueryRRLP.Early")) {
-				// TODO...
-			}
-
-			// Have an imsi already?
-			if (mobileID.type()==IMSIType) {
-				string imsi(mobileID.digits());
-				tran()->setSubscriberImsi(string(mobileID.digits()),true);
-				if (!gTMSITable.tmsiTabCheckAuthorization(imsi)) {
-					return sendCMServiceReject(L3RejectCause::Requested_Service_Option_Not_Subscribed,true);
-				}
-				return serviceAccept();
-			}
-
-			// If we got a TMSI, find the IMSI.
-			if (mobileID.type()==TMSIType) {
-				unsigned authorized;
-				string imsi = gTMSITable.tmsiTabGetIMSI(mobileID.TMSI(),&authorized);
-				if (imsi.size()) {
-					// TODO: We need to authenticate this.
-					// But for now, just accept it.
-					tran()->setSubscriberImsi(imsi,true);
-					if (!authorized) {
-						return sendCMServiceReject(L3RejectCause::Requested_Service_Option_Not_Subscribed,true);
-					}
-					return serviceAccept();
-				}
-			}
-
-
-			// Still no IMSI?  Ask for one.
-			// TODO: We should ask the SIP Registrar.
-			// (pat) This is not possible if the MS is compliant (unless the TMSI table has been lost) -
-			// the MS should have done a LocationUpdate first, which provides us with the IMSI.
-			// Or maybe the tmsi table was deleted.
-			PROCLOG(NOTICE) << "MOC with no IMSI or valid TMSI.  Reqesting IMSI.";
-			timerStart(T3270,T3270ms,TimerAbortChan); // start IdentityRequest sent; stop IdentityResponse received.
-			channel()->l3sendm(L3IdentityRequest(IMSIType));
-			return MachineStatusOK;
-		}
-
-		// TODO: This should be moved to an MM Identify procedure run before starting the MOC.
-		case L3CASE_MM(IdentityResponse): {
-			timerStop(T3270);
-			const L3IdentityResponse *resp = dynamic_cast<typeof(resp)>(l3msg);
-			L3MobileIdentity mobileID = resp->mobileID();
-			if (mobileID.type()==IMSIType) {
-				string imsi(mobileID.digits());
-				tran()->setSubscriberImsi(imsi,true);
-				if (!gTMSITable.tmsiTabCheckAuthorization(imsi)) {
-					return sendCMServiceReject(L3RejectCause::Requested_Service_Option_Not_Subscribed,true);
-				}
-				return serviceAccept();
-			} else {
-				// FIXME -- This is quick-and-dirty, not following GSM 04.08 5.
-				PROCLOG(WARNING) << "MOC setup with no IMSI";	// (pat) It is used for MO-SMS, not MOC.
-				// Reject cause in 10.5.3.6.
-				// Cause 0x62 means "message type not not compatible with protocol state".
-				return sendCMServiceReject(L3RejectCause::Message_Type_Not_Compatible_With_Protocol_State,false);
-			}
-			return something
-		}
-#endif
-
 
 		case L3CASE_CC(Setup): {
 			timerStop(T303);

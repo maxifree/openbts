@@ -36,13 +36,9 @@
 #include <GSMConfig.h>
 #include <GSMTransfer.h>
 #include "ControlCommon.h"
-//#include <GSML3CommonElements.h>
-//#include <GSML3MMElements.h>
-//#include <GSML3CCElements.h>
 #include <GSML3Message.h>		// Doesnt this poor L3Message get lonely?  When apparently there are multiple L3MMMessages and L3CCMessages?
 #include <GSML3MMMessages.h>
 #include <GSML3CCMessages.h>
-//#include <SIPDialog.h>
 #include <SIPExport.h>
 #include <Regexp.h>
 #include "RRLPServer.h"
@@ -649,16 +645,6 @@ MachineStatus LUStart::machineRunState(int state, const GSM::L3Message* l3msg, c
 		} else {
 			return callMachStart(new LUFinish(tran()));
 		}
-#if 0
-		if (ludata()->mRegistrationResult.isFailure()) {
-		}
-		//if (ludata()->mRAND.length() == 0)
-		if (ludata()->mRegistrationResult.mRegistrationStatus != RegistrationChallenge) {
-			// If the RAND is not provided, no challenge needed.
-			// The phone may be authorized or not, but LUFinish handles both cases.
-			return callMachStart(new LUFinish(tran()));
-		}
-#endif
 	}
 	default:
 		return unexpectedState(state,l3msg);
@@ -766,38 +752,17 @@ MachineStatus LUAuthentication::machineRunState(int state, const GSM::L3Message*
 					// Authorization success: Move on.
 					break;
 			}
-#if 0
-			if (ludata()->mRegistrationResult.isNetworkFailure()) {
-				return callMachStart(new LUNetworkFailure(tran()));
-			} else if (ludata()->mRegistrationResult == RegistrationFail) {	// really failed.
-				if (ludata()->mSecondAttempt == 0 && ludata()->getTmsiStatus() == tmsiProvisional) {
-					// Registration by TMSI failed.  Try again using an IMSI.  To do that we will start authentication over from scratch.
-					// Delete both the stored tmsi and the imsi stored in the transaction.
-					ludata()->setTmsi(0,tmsiFailed);
-					tran()->setSubscriberImsi(string(""),false);	// This IMSI was not authorized and may not be the IMSI for this TMSI.
-					ludata()->mSecondAttempt = true;	// Start second attempt.
-					// Start over and this time query for the IMSI and try again.
-					return callMachStart(new LUStart(tran()));
-				} else {
-					// We dont need to update the TmsiStatus because we are finished.
-					// LUFinish will check open-registration, send a reject message if we really failed.
-					return callMachStart(new LUFinish(tran()));
-				}
-			} else
-#endif
-			{
-				// Query for classmark?
-				// (pat) We need to do this if the IMEI changed also, because a new handset may have different capabilities.
-				// Instead of checking IMEI, just always query the classmark and dont worry about checking
-				// whether we already have a valid classmark or not.
-				if (gConfig.getBool("GSM.Cipher.Encrypt") || gConfig.getBool("Control.LUR.QueryClassmark"))  {
-					timerStart(TMMCancel,12000,TimerAbortChan);
-					channel()->l3sendm(L3ClassmarkEnquiry());
-					return MachineStatusOK;
-				} else {
-					return callMachStart(new LUFinish(tran()));
-				}
-			}
+            // Query for classmark?
+            // (pat) We need to do this if the IMEI changed also, because a new handset may have different capabilities.
+            // Instead of checking IMEI, just always query the classmark and dont worry about checking
+            // whether we already have a valid classmark or not.
+            if (gConfig.getBool("GSM.Cipher.Encrypt") || gConfig.getBool("Control.LUR.QueryClassmark"))  {
+                timerStart(TMMCancel,12000,TimerAbortChan);
+                channel()->l3sendm(L3ClassmarkEnquiry());
+                return MachineStatusOK;
+            } else {
+                return callMachStart(new LUFinish(tran()));
+            }
 		}
 
 		case L3CASE_RR(ClassmarkChange): {
@@ -1233,8 +1198,6 @@ MachineStatus L3RegisterMachine::machineRunState(int state, const GSM::L3Message
 					if (challenge && challenge->dmRejectCause) {
 						rejectCause = (MMRejectCause)(int)challenge->dmRejectCause;
 
-#if 0	// (pat) Please dont enable this.  See comments at queryForRejectCause
-#endif
 					} else {
 						rejectCause = getRejectCause(sipCode);
 					}

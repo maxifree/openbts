@@ -155,29 +155,6 @@ MachineStatus MachineBase::closeChannel(RRCause rrcause,Primitive prim,TermCause
 	return MachineStatus::QuitChannel(upstreamCause);
 }
 
-#if UNUSED
-ControlLayerException MachineBase::procHandleL3Msg(GSM::L3Message *l3msg, L3LogicalChannel *lch)
-{
-	// Look up the message in the Procedure message table.
-	int state = findMsgMap(l3msg->PD(),l3msg->MTI());
-	if (state == -1) {
-		// If state is -1, message is not mapped and is ignored by us.
-		return L3OK();  // TODO: Return what indicator?
-	}
-	IF you use this again: procInvoke was replaced by calls to handleMachineStatus inside lockAnd... methods of TranEntry
-	procInvoke(state,l3msg,NULL);
-}
-#endif
-
-#if UNUSED
-// The proc may be this, ie, tran->currentProcedure()
-MachineStatus MachineBase::callProcState(MachineBase *wProc, unsigned state)
-{
-	tran()->teSetProcedure(wProc,false);
-	return wProc->machineRunState(state);
-}
-#endif
-
 // This switches to the specifed Procedure and starts it.  It is equivalent to a long goto.
 // It is also legal for the procedure to already be the current procedure, in which case we just start it.
 MachineStatus MachineBase::callMachStart(MachineBase *wProc, unsigned startState)
@@ -296,21 +273,6 @@ MachineStatus MachineBase::machineRunState(int /*state*/, const GSM::L3Message *
 	assert(0);
 }
 
-#if UNUSED
-MachineStatus MachineBase::machineRunL3Msg(int state, const GSM::L3Message *l3msg)
-{
-	bool deleteit;
-	if (handleCommonMessages(l3msg, channel(),&deleteit)) {
-		LOG(DEBUG) << "message handled by handleCommonMessages"<<LOGVAR(l3msg);
-		if (deleteit) delete l3msg;
-		return MachineStatusOK;
-	}
-	//int state = L3CASE_RAW(l3msg->PD(),l3msg->MTI());
-	LOG(DEBUG) <<"calling machineRunState "<<LOGHEX(state)<<machText()<<LOGVAR(l3msg);
-	return machineRunState(state,l3msg,NULL);
-}
-#endif
-
 MachineStatus handlePrimitive(const L3Frame *frame, L3LogicalChannel *lch)
 {
 	switch (frame->primitive()) {
@@ -388,32 +350,6 @@ MachineStatus MachineBase::dispatchFrame(const L3Frame *frame, const L3Message *
 		return MachineStatusOK;
 	}
 	return machineRunState1(state,frame,l3msg);
-#if 0
-	if (frame->isData()) {
-		if (L3Message *msg = parseL3(*frame)) {
-			LOG(DEBUG) <<channel() <<" received L3 message "<<*msg;
-			// Manufacture an integral state from the msg.
-			// Note we overload pd==0 (Group Call Control) for naked states in the state machines, which is ok because
-			// we dont support Group Call and even if we did, the Group Call MTIs (GSM 04.68 9.3) will probably not collide
-			// because there are no small numberic MTIs.
-			int state = L3CASE_RAW(frame->PD(),frame->MTI());
-			LOG(DEBUG) <<"calling machineRunState1 "<<LOGHEX(state)<<machText()<<LOGVAR(frame);
-			//MachineStatus result = machineRunL3Msg(state, msg);
-			MachineStatus result = machineRunState1(state, frame, msg, NULL);
-			delete msg;
-			return result;
-		} else {
-			LOG(ERR) <<channel()<< " received unparseable Layer3 frame "<<*frame;
-			//old: lch->chanGetContext(true)->mmDispatchError(PD,MTI,lch);
-			return MachineStatusOK;	// Was not handled, but the caller cant do anything more with this frame.
-		}
-	} else {
-		Primitive primitive = frame->primitive();
-		int state = L3CASE_PRIMITIVE(primitive);
-		LOG(DEBUG) <<"calling machineRunState1 "<<LOGHEX(state)<<machText()<<LOGVAR(primitive);
-		return machineRunState1(state);
-	}
-#endif
 }
 
 // The procedure is pre-locked by the caller.
@@ -473,56 +409,6 @@ MachineStatus MachineBase::dispatchL3Msg(const L3Message *l3msg)
 	// We pass a NULL frame, but any state machine that gets messages via this function will know that.
 	return machineRunState1(state,(L3Frame*)NULL,l3msg);
 }
-
-
-#if UNUSED
-bool CSL3StateMachine::csl3Write(GenericL3Msg *msg)
-{
-	if (1) { //l3rewrite())
-		LOG(DEBUG) << "Received "<<msg->typeName()<<" message for l3rewrite";
-		mCSL3Fifo.write(msg);
-		return true;			// Our code is going to deal with this message.
-	} else {
-		LOG(DEBUG) << "Received "<<msg->typeName()<<" message, handling with version 1 code";
-		// Caller must deal with this message with pre-existing version 1 code.
-		return false;
-	}
-}
-#endif
-
-
-#if UNUSED	// now it is
-// TODO: This might as well be in MMContext.
-static void csl3HandleLCHMsg(GSM::L3Message *l3msg, L3LogicalChannel *lch)
-{
-	// Do we have one or more transactions already running on this logical channel?
-	// There can be multiple transactions on the same channel.
-	// What is to prevent an MS from allocating multiple channels, eg, a TCH and SDCCH simultaneously?
-	// I think previously nothing.   But we are not going to try to aggregate messages from multiple channels in the same MS together.
-	// We assume that all the messages for a single Machine arrive on a single channel+SACCH pair.
-	if (handleCommonMessages(l3msg, lch)) {
-		LOG(DEBUG) << "message handled by handleCommonMessages"<<LOGVAR(l3msg);
-		delete l3msg;
-		return;
-	}
-
-	bool handled = lch->chanGetContext(true)->mmDispatchL3Msg(l3msg,lch);
-
-	//TranEntry *tran = gNewTransactionTable.ttFindByL3Msg(l3msg,lch);
-	//bool handled = false;
-	//if (tran) {
-	//	OBJLOG(DEBUG) <<"received l3msg for dcch:"<<*lch<<" l3msg="<<*l3msg<<LOGVAR(tran->text());
-	//	// TODO: Do we ever need a way for the Procedure to tell us that a message was completely handled
-	//	// and that we should not examine it further?
-	//	if (tran->lockAndInvokeL3Msg(l3msg,lch)) handled++;
-	//}
-
-	if (!handled) {
-		LOG(DEBUG) <<"unhandled l3msg" <<LOGVAR(l3msg) <<lch->chanGetContext(false);
-	}
-	delete l3msg;
-}
-#endif
 
 // Return true if it was an l3 message or a primitive that we pass on to state machines, false otherwise.
 // After calling us the caller should test chanRunning to see if the channel is still up.
@@ -619,76 +505,6 @@ static void csl3HandleFrame(const GSM::L3Frame *frame, L3LogicalChannel *lch)
 	if (l3msg) delete l3msg;
 }
 
-#if UNUSED
-// Handle timeouts.  Return the next timeout or -1 if no timeout is pending.
-int CSL3StateMachine::csl3HandleTimers()
-{
-	ScopedLock lock(gNewTransactionTable.mLock,__FILE__,__LINE__);
-	int nextTimeout = -1;
-	for (NewTransactionMap::iterator itr = gNewTransactionTable.mTable.begin(); itr!=gNewTransactionTable.mTable.end(); ++itr) {
-		TranEntry *tran = itr->second;
-		if (tran->deadOrRemoved()) continue;
-		tran->checkTimers();
-	}
-	for (NewTransactionMap::iterator itr = gNewTransactionTable.mTable.begin(); itr!=gNewTransactionTable.mTable.end(); ++itr) {
-		TranEntry *tran = itr->second;
-		int remaining = tran->remainingTime();
-		if (remaining >= 0) {
-			nextTimeout = (nextTimeout == -1) ? remaining : min(nextTimeout,remaining);
-		}
-		LOG(DEBUG)<<"transaction "<<tran->tranID()<<LOGVAR(nextTimeout);
-	}
-	return nextTimeout;
-}
-#endif
-
-#if UNUSED
-// Under GSM this could block as long as a downlink LAPDm message can block.
-void CSL3StateMachine::csl3HandleSipMsg(SIP::DialogMessage *sipmsg)
-{
-	bool found = false;
-	TranEntry *tran = gNewTransactionTable.ttFindById(sipmsg->mTranId);
-	if (tran && ! tran->deadOrRemoved()) {
-		found = true;
-		LOG(DEBUG) << "sip message code="<<sipmsg->mSIPStatusCode <<" handled by trans "<<tran->tranID();
-		// Call deletes it
-		tran->lockAndInvokeSipMsg(sipmsg);
-	}
-#if 0
-	ScopedLock lock(gNewTransactionTable.mLock,__FILE__,__LINE__);
-	int code = sipmsg->sipStatusCode();
-	LOG(DEBUG) << "Received Dialog message "<<LOGVAR(callid)<<LOGVAR(sipmsg);
-	// TODO: We should have a back pointer from sip so we dont have to search for this.  It might go in the as yet non-existent mobility management layer.
-	for (TransactionMap::iterator itr = gNewTransactionTable.mTable.begin(); itr!=gNewTransactionTable.mTable.end(); ++itr) {
-		TranEntry *tran = itr->second;
-		if (tran->deadOrRemoved()) continue;
-		if (tran->SIPCallID() == callid) {
-			found = true;
-			LOG(DEBUG) << "sip message code="<<code <<" handled by trans "<<tran->tranID();
-			tran->lockAndInvokeSipMsg(sipmsg);
-		}
-	}
-#endif
-	if (!found) { LOG(DEBUG) << "sip message code="<<sipmsg->mSIPStatusCode <<" no matching transaction found."; }
-}
-#endif
-
-#if UNUSED
-void CSL3StateMachine::csl3HandleMsg(GenericL3Msg *gmsg)
-{
-	switch (gmsg->ml3Type) {
-	case GenericL3Msg::MsgTypeLCH:
-		csl3HandleFrame(gmsg->ml3frame,gmsg->ml3ch);
-		break;
-	case GenericL3Msg::MsgTypeSIP:
-		csl3HandleSipMsg(gmsg->mSipMsg /*, gmsg->mCallId*/);
-		break;
-	default: assert(0);
-	}
-	delete gmsg;		// Deletes the L3Frame in the GenericL3Msg as well.
-}
-#endif
-
 /**
 	Update vocoder data transfers in both directions.
 	@param transaction The transaction object for this call.
@@ -772,29 +588,6 @@ static bool checkemMessages(L3LogicalChannel *dcch, int delay)
 		delete l3frame;
 		return true;	// Go see if it terminated the TranEntry while we were potentially blocked.
 	}
-
-#if 0
-	// // How about SAPI 3?
-	// if (GSM::L3Frame *l3frame = dcch->l2recv(0,3)) {
-	// 	LOG(DEBUG) <<dcch<< *l3frame;
-	// 	csl3HandleFrame(l3frame, dcch);
-	// 	delete l3frame;
-	// 	return true;	// Go see if it terminated the TranEntry while we were potentially blocked.
-	// }
-
-	// // How about SACCH?  These messages are supposed to be prioritized, but we're not bothering.
-	// // We need to pass the ESTABLISH primitive to higher layer, specifically, MTSMSMachine.
-	// if (L3Frame *aframe = dcch->ml3UplinkQ.readNoBlock()) {
-	// 	//if (IS_LOG_LEVEL(DEBUG)) {
-	// 		//std::ostringstream os; os << *aframe;
-	// 		//WATCHF("Frame on SACCH %s: %s\n",dcch->descriptiveString(),os.str().c_str());
-	// 	//}
-	// 	WATCH("Recv frame on SACCH "<<dcch->descriptiveString()<<" "<<*aframe);
-	// 	csl3HandleFrame(aframe, dcch);
-	// 	delete aframe;
-	// 	return true;	// Go see if it terminated the TranEntry while we were potentially blocked.
-	// }
-#endif
 
 	// Any Dialog messages from the SIP side?
 	// Sadly we cannot process the sip messages in a separate global L3 thread because the TranEntry/procedure may be
@@ -1036,58 +829,6 @@ void L3DCCHLoop(L3LogicalChannel*dcch, L3Frame *frame)
 	dcch->chanSetState(L3LogicalChannel::chIdle);
 	LOG(DEBUG) << "DCCHLoop exiting "<<dcch;
 }
-
-#if UNUSED_BUT_SAVE_FOR_UMTS	// but may be used for UTMS
-void CSL3StateMachine::csl3ServiceLoop()
-{
-	if (IS_LOG_LEVEL(DEBUG)) {
-		ostringstream os;
-		os <<"Transaction Table:";
-		if (gNewTransactionTable.dump(os,true)) { LOG(DEBUG)<<os.str(); }
-	}
-	try {
-		int timeout = -1;
-		// Process all messages in the queue first, for no particular reason.
-		if (mCSL3Fifo.size() == 0) {
-			// Invoke Procedures to process timeouts and also determine the next timeout.
-			timeout = csl3HandleTimers();
-		}
-		GenericL3Msg *msg;
-		if (timeout >= 0) {
-			msg = mCSL3Fifo.read(timeout);	// wait only until the next timer expires.
-			LOG(DEBUG) "read(timeout="<<timeout<<") returned:"<<msg;
-		} else {
-			msg = mCSL3Fifo.read(); 		// wait forever.
-			LOG(DEBUG) "read() returned:"<<msg;
-		}
-		gResetWatchdog();
-		if (msg) {	// If timeout, there will be no msg.
-			csl3HandleMsg(msg);
-		}
-	}
-	// FIXME: copy catch code from DCCHDispatcher()
-	catch (...) {
-		LOG(ERR) << "unhandled exception in CSL3StateMachine";
-	}
-}
-
-
-static void *csl3ThreadLoop(void *unusedArg)
-{
-	while (1) { gCSL3StateMachine.csl3ServiceLoop(); }
-	return NULL;
-}
-
-void CSL3StateMachine::csl3Start()
-{
-	mCSL3Thread = new Thread;
-	//thread->start((void*(*)(void*))Control::DCCHDispatcher,chan);
-	mCSL3Thread->start(csl3ThreadLoop,NULL);
-}
-
-CSL3StateMachine gCSL3StateMachine;
-CSL3StateMachine::CSL3StateMachine() : mCSL3Thread(NULL) {}
-#endif
 
 void l3start()
 {

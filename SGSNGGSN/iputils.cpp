@@ -166,24 +166,6 @@ EXPORT unsigned int ip_checksum(void *ptr, unsigned len, void *dummyhdr)
     return 0xffff & ~sum;
 }
 
-#if 0
-// from ifconfig.c - skfd is undefined
-static int set_ip_using(const char *name, int c, unsigned long ip)
-{
-    struct ifreq ifr;
-    struct sockaddr_in sin;
-
-    /*safe_*/strncpy(ifr.ifr_name, name, IFNAMSIZ);
-    memset(&sin, 0, sizeof(struct sockaddr));
-    sin.sin_family = AF_INET;
-    sin.sin_addr.s_addr = ip;
-    memcpy(&ifr.ifr_addr, &sin, sizeof(struct sockaddr));
-    if (ioctl(skfd, c, &ifr) < 0)
-    return -1;
-    return 0;
-}
-#endif
-
 EXPORT void ip_hdr_dump(unsigned char *packet, const char *msg)
 {
 	struct iptcp {	// This is only accurate if no ip options specified.

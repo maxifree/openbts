@@ -314,15 +314,6 @@ bool TMSITable::dropImsi(const char *imsi)
 }
 
 
-#if UNUSED
-void TMSITable::tmsiTabSetAuthAndAssign(string imsi,int auth, int assigned)
-{
-	char query[100];
-	snprintf(query,100,"UPDATE TMSI_TABLE SET AUTH=%u, ASSIGNED=%u WHERE IMSI == '%s'",auth,assigned,imsi.c_str());
-	runQuery(query,1);
-}
-#endif
-
 // This does nothing if the IMSI is not found in the table.
 void TMSITable::tmsiTabSetRejected(string imsi,int rejectCode)
 {
@@ -549,118 +540,6 @@ uint32_t TMSITable::tmsiTabCreateOrUpdate(
 	return tmsi;
 }
 
-#if 0	// not so old version
-uint32_t TMSITable::tmsiTabAssign(const string imsi, const GSM::L3LocationAreaIdentity * lai, uint32_t oldTmsi,TmsiTableStore *store)
-{
-	// Create or find an entry based on IMSI.
-	// Return assigned TMSI.
-	assert(mTmsiDB);
-
-	gReports.incr("OpenBTS.GSM.MM.TMSI.Assigned");
-
-	ScopedLock lock(sTmsiMutex,__FILE__,__LINE__); // This lock should be redundant - sql serializes access, but it may prevent sql retry failures.
-
-	uint32_t tmsi = 0;
-
-	// Create a new record.
-	LOG(INFO) << "new entry for"<<LOGVAR(imsi)<<LOGVAR(tmsi);
-	unsigned now = (unsigned)time(NULL);
-	TSqlInsert query; query.reserve(150);
-	bool sendTmsis = configSendTmsis();
-	query.append("INSERT INTO TMSI_TABLE (");
-	query.addc("IMSI",imsi);
-	query.addc("CREATED",now);
-	query.addc("ACCESSED",now);
-	if (sendTmsis) {
-		tmsi = allocateTmsi();
-		query.addc("TMSI",tmsi2table(tmsi));
-	} else {
-		// Nothing needed.  sqlite3 woult auto-assign a unique TMSI higher than any other in
-		// the table, but we need to handle the initial case for the first fake tmsi.
-		tmsi = ++sHighestFakeTmsi;
-		query.addc("TMSI",tmsi2table(tmsi));
-	}
-	query.addStore(store);
-
-	if (lai) {
-		query.addc("OLD_MCC",lai->MCC());
-		query.addc("OLD_MNC",lai->MNC());
-		query.addc("OLD_LAC",lai->LAC());
-		query.addc("OLD_TMSI",oldTmsi);
-	}
-	query.finish();
-	if (!runQuery(query.c_str(),1)) {
-		LOG(ALERT) << "TMSI creation failed, query:"<<query;
-		return 0;
-	}
-
-	if (sendTmsis) {	// double check to make sure the database entry made it.
-		unsigned tmsicheck;
-		if (!sqlite3_single_lookup(mTmsiDB,"TMSI_TABLE","IMSI",imsi.c_str(),"TMSI",tmsicheck) || table2tmsi(tmsicheck) != tmsi) {
-			LOG(ERR) << "TMSI database inconsistancy"<<LOGVAR(imsi)<<LOGVAR(tmsi)<<LOGVAR(tmsicheck);
-			return 0;
-		}
-	}
-	return tmsi;
-}
-#endif
-
-#if old_version
-// Create a new entry in the TMSI table.
-// This also set the AUTH status to authorized; it is only called on registration success.
-// If we are assigning TMSIs to the MS, return the new TMSI, else 0.
-uint32_t TMSITable::assign(const string imsi, const GSM::L3LocationAreaIdentity * lai, uint32_t oldTmsi, const string imei)
-{
-	// Create or find an entry based on IMSI.
-	// Return assigned TMSI.
-	assert(mTmsiDB);
-
-	gReports.incr("OpenBTS.GSM.MM.TMSI.Assigned");
-
-	ScopedLock lock(sTmsiMutex,__FILE__,__LINE__); // This lock should be redundant - sql serializes access, but it may prevent sql retry failures.
-
-	uint32_t tmsi = 0;
-
-	// Create a new record.
-	LOG(INFO) << "new entry for"<<LOGVAR(imsi)<<LOGVAR(tmsi);
-	string query;
-	query.append("INSERT INTO TMSI_TABLE (");
-	bool sendTmsis = configSendTmsis();
-	if (sendTmsis) {
-		tmsi = allocateTmsi();
-		query.add("TMSI",tmsi);
-	}
-	query.add("IMSI",imsi);
-	unsigned now = (unsigned)time(NULL);
-	query.add("CREATED",now);
-	query.add("ACCESSED",now);
-	if (lai) {
-		query.add("OLD_MCC",lai->MCC());
-		query.add("OLD_MNC",lai->MNC());
-		query.add("OLD_LAC",lai->LAC());
-		query.add("OLD_TMSI",oldTmsi);
-	}
-	query.append(") VALUES (");
-	query.append(values);
-	query.append(")");
-	if (!runQuery(query.c_str(),1)) {
-		LOG(ALERT) << "TMSI creation failed, query:"<<query;
-		return 0;
-	}
-
-	if (sendTmsis) {
-		unsigned tmsicheck;
-		if (!sqlite3_single_lookup(mTmsiDB,"TMSI_TABLE","IMSI",imsi.c_str(),"TMSI",tmsicheck) || tmsicheck != tmsi) {
-			LOG(ERR) << "TMSI database inconsistancy"<<LOGVAR(imsi)<<LOGVAR(tmsi)<<LOGVAR(tmsicheck);
-			return 0;
-		}
-	}
-	return tmsi;
-}
-#endif
-
-
-
 // Update timestamp by TMSI.
 void TMSITable::tmsiTabTouchTmsi(unsigned TMSI) const
 {
@@ -844,20 +723,6 @@ void TMSITable::tmsiTabDump(int verbosity,bool rawFlag, ostream& os, bool showAl
 	unsigned maxrows = showAll ? 2^31 : 100;
 	vector< vector<string> > view = tmsiTabView(verbosity, rawFlag, maxrows);
 
-#if unused
-	// Add the IMSI authorization failures.  They dont have TMSIs, or any other information.
-	vector<string> failList;
-	getAuthFailures(failList);
-	for (vector<string>::iterator it = failList.begin(); it != failList.end(); it++) {
-		if (view.size() >= maxrows) break;
-		vector<string> failureRow;
-		failureRow.push_back(*it);		// The IMSI;
-		failureRow.push_back(string("-"));		// TMSI
-		failureRow.push_back(string("0"));		// AUTH
-		view.push_back(failureRow);
-	}
-#endif
-
 	if (view.size() >= maxrows) {
 		vector<string> tmp;
 		tmp.push_back(string("..."));
@@ -865,46 +730,7 @@ void TMSITable::tmsiTabDump(int verbosity,bool rawFlag, ostream& os, bool showAl
 	}
 
 	printPrettyTable(view,os,taboption);
-
-#if 0	// previous tmsi table dumping code.
-	sqlite3_stmt *stmt;
-	if (sqlite3_prepare_statement(mTmsiDB,&stmt,"SELECT TMSI,IMSI,CREATED,ACCESSED FROM TMSI_TABLE ORDER BY ACCESSED DESC")) {
-		LOG(ERR) << "sqlite3_prepare_statement failed";
-		return;
-	}
-	time_t now = time(NULL);
-	while (sqlite3_run_query(mTmsiDB,stmt)==SQLITE_ROW) {
-		os << hex << setw(8) << sqlite3_column_int64(stmt,0) << ' ' << dec;
-		os << sqlite3_column_text(stmt,1) << ' ';
-		printAge(now-sqlite3_column_int(stmt,2),os); os << ' ';
-		printAge(now-sqlite3_column_int(stmt,3),os); os << ' ';
-		os << endl;
-	}
-	sqlite3_finalize(stmt);
-#endif
 }
-
-
-
-#if UNUSED
-void TMSITable::setIMEI(string IMSI, string IMEI)
-{
-	// If the IMEI has changed, update it and also reset RRLP_STATUS.
-	// The A5_SUPPORT and POWER_CLASS have to change too, but that is done by classmark().
-	if (IMEI.size()) {
-		sqlQuery qu(mTmsiDB,"TMSI_TABLE","IMEI","IMSI",IMSI.c_str());
-		string oldIMEI = qu.getResultText(0);
-		if (oldIMEI != IMEI) {
-			LOG(INFO) << "Updating" <<LOGVAR(IMSI) << " from" <<LOGVAR(oldIMEI) <<" to" <<LOGVAR(IMEI);
-			char query[100];
-			snprintf(query,100,"UPDATE TMSI_TABLE SET IMEI='%s',RRLP_STATUS=0 WHERE IMSI == '%s'",IMEI.c_str(),IMSI.c_str());
-			runQuery(query,1);
-		}
-	}
-}
-#endif
-
-
 
 bool TMSITable::classmark(const char* IMSI, const GSM::L3MobileStationClassmark2& classmark)
 {
@@ -933,22 +759,6 @@ int TMSITable::tmsiTabGetPreferredA5Algorithm(const char* IMSI)
 	sqlQuery query(mTmsiDB,"TMSI_TABLE","A5_SUPPORT", "IMSI",IMSI);
 	if (!query.sqlSuccess()) return 0;
 	int cm = query.getResultInt(0);
-#if 0
-	char query[200];
-	snprintf(query,200, "SELECT A5_SUPPORT from TMSI_TABLE WHERE IMSI=\"%s\"", IMSI);
-	sqlite3_stmt *stmt;
-	if (sqlite3_prepare_statement(mTmsiDB,&stmt,query)) {
-		LOG(ERR) << "sqlite3_prepare_statement failed for " << query;
-		return 0;
-	}
-	if (sqlite3_run_query(mTmsiDB,stmt)!=SQLITE_ROW) {
-		// Returning false here just means the IMSI is not there yet.
-		sqlite3_finalize(stmt);
-		return 0;
-	}
-	int cm = sqlite3_column_int(stmt,0);
-	sqlite3_finalize(stmt);
-#endif
 	return getPreferredA5Algorithm(cm);
 }
 
@@ -974,21 +784,6 @@ bool TMSITable::getAuthTokens(const char* IMSI, uint64_t& upperRAND, uint64_t& l
 		return true;
 	}
 	return false;
-}
-#endif
-
-#if UNUSED
-// Note that we overwrite the P-Associated-URI and P-Asserted-Identity, even if the incoming are empty.  If we dont know them, we dont know them.
-void TMSITable::putKc(const char* imsi, string Kc, string pAssociatedUri, string pAssertedIdentity)
-{
-	char query[200];
-	snprintf(query,200,"UPDATE TMSI_TABLE SET kc='%s',ASSOCIATED_URI='%s',ASSERTED_IDENTITY='%s' WHERE IMSI='%s'", Kc.c_str(),  pAssociatedUri.c_str(),pAssertedIdentity.c_str(),imsi);
-	// And I quote sqlite.org documentation for "UPDATE": "It is not an error if the WHERE clause does not evaluate true for any row in the table".
-	// So if if the IMSI is not found this does not return an error.  We have to check sqlite3_changes() to see if a row changed.
-	if (! runQuery(query,1)) {
-		// We dont write the query because it has Kc in it.
-		LOG(ALERT) << "cannot write Kc or asserted identities to TMSI table for"<<LOGVAR(imsi);
-	}
 }
 #endif
 

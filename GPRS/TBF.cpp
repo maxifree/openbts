@@ -350,35 +350,6 @@ uint32_t TBF::mtGetTlli()
 	return tlli;
 }
 
-#if 0
-// 7-25: Neither the Blackberry nor Multitech like this message.
-// Maybe  because I include the downlink assignment when there is no downlink TBF?
-static bool sendTimeslotReconfigure(
-	PDCHL1FEC *pacch,	// The PACCH channel.
-	TBF *tbf,	// This is an uplink tbf.
-	std::ostream *os)	// for testing - if set, print out the message instead of sending it.
-{
-	RLCMsgPacketTimeslotReconfigure *msg = new RLCMsgPacketTimeslotReconfigure(tbf);
-
-	//msg->setTimingAdvance(ms->msGetTA());
-
-	// This will set mtExpectedAckBSN if the message is sent.
-	// If the MS gets this message, it will send Packet Control Acknowledgment
-	// in the block specified by RRBP.
-	if (os) {
-		msg->text(*os);
-		delete msg;
-		return true;
-	} else {
-		GPRSLOG(1) << "GPRS sendReassignment "<<tbf<<" sending:" << msg;
-		tbfDumpAll();
-		// This will increment the counter if the message is really sent.
-		return pacch->downlink()->
-			send1MsgFrame(tbf,msg,2,MsgTransReassign,&tbf->mtReassignCounter);
-	}
-}
-#endif
-
 static bool sendAssignmentPacch(
 	PDCHL1FEC *pacch,	// The PACCH channel.
 	TBF *tbf,
@@ -787,44 +758,7 @@ void MSInfo::msStop(RLCDir::type dir, MSStopCause::type cause, TbfCancelMode cmo
 			tbf->mtCancel(cause,cmode);
 		}
 	}
-#if 0
-	//if (!msTxxxx.active()) {
-	//	GPRSLOG(1) << this <<" STOPPED" <<LOGHEX(msTLLI) <<" cause="<<(int)cause;
-	//	msTxxxx.set(howlong);
-
-	//	// DEBUG: Dont do it;
-	//	return;
-
-	//	msStopCause = cause;
-	//	// Suspend all the tbfs.
-	//	TBF *tbf;
-	//	RN_FOR_ALL(TBFList_t,msTBFs,tbf) {
-	//		if (tbf->isActive()) { tbf->mtSetState(TBFState::Dead); }
-	//	}
-
-	//	GLOG(INFO) << "MS with " <<LOGHEX(msTLLI) << " temporarily stopped, cause: " << (int)cause;
-	//}
-#endif
 }
-
-#if 0
-void MSInfo::msRestart()
-{
-	TBF *tbf;
-	RN_MS_FOR_ALL_TBF(this,tbf) {
-		// We only delete dead tbfs, ie, the ones that we stopped previously.
-		// That is so if someone changes this code in the future to allow
-		// new TBFs to start during the 5 second delay in resource release,
-		// we wont delete those.
-		if (tbf->mtGetState() == TBFState::Dead) { tbf->mtCancel(); }
-	}
-	msTxxxx.reset();
-	msT3191.reset();
-	msT3193.reset();	// Should have expired already, but be sure.
-	//msMode = RROperatingMode::PacketIdle;
-}
-#endif
-
 
 // Writes a block of data to the MS
 static RLCDownEngine *createDownlinkTbf(MSInfo *ms, DownlinkQPdu *dlmsg, bool isRetry, ChannelCodingType codingMax)
@@ -1341,28 +1275,6 @@ bool TBF::mtServiceDownlink(PDCHL1Downlink *down)
 
 			case TBFState::DataReassign:
 				devassert(0);
-#if 0
-				// Wait for existing messages to clear.
-				if (mtMsgPending()) {return false;}
-				// Did we get the ack to the reassignment?
-				if (mtGotAck(MsgTransReassign,true)) {
-					mtSetState(TBFState::DataTransmit);
-					continue;
-				}
-				if ((int)mtReassignCounter > gConfig.getNum("GPRS.Counters.Reassign")) {
-					mtCancel(MSStopCause::ReassignCounter,TbfRetryAfterWait);
-					return false;
-				}
-				// Send the reassignment.
-				// This is currently used only in the case where an uplink TBF
-				// wants to change its priority.
-				devassert(tbf->mtDir == RLCDir::Up);
-				if (sendTimeslotReconfigure(down->parent(),this,NULL)) { return true; }
-				// TODO: While we are waiting for the above, we could be sending
-				// blocks or setting USFs on the old channels, but for now
-				// we will not send any more blocks until the reassign occurs.
-				return false;	// We did not use the downlink.
-#endif
 			case TBFState::DataTransmit:
 				if (mtAssignmentOnCCCH) {
 					if (mtGotAck(MsgTransAssign2,true)) {

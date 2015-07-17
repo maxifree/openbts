@@ -183,62 +183,6 @@ std::ostream& operator<<(std::ostream& os, const NSPDUType::type val)
 	return os;
 }
 
-#if 0
-/** GSM 04.60 11.2 */
-BSSGDownlinkMsg* BSSGDownlinkParse(ByteVector &src)
-{
-	BSSGDownlinkMsg *result = NULL;
-
-	// NS PDUType is byte 0.
-	NSPDUType::type nstype = (NSPDUType::type) src.getByte(0);
-	if (nstype != NSPDUType::NS_UNITDATA) {
-		LOG(INFO) << "Unrecognized NS PDU Type=" << nstype ;
-		return NULL;
-	}
-
-	// BSSG PDUType is byte 5.
-	BSPDUType::type msgType = (BSPDUType::type) src.getByte(5);
-
-	switch (msgType) {
-		case BSPDUType::DL_UNITDATA:
-			result = new BSSGMsgDLUnitData(src);
-			break;
-		case BSPDUType::RA_CAPABILITY:
-		case BSPDUType::PAGING_PS:
-		case BSPDUType::PAGING_CS:
-		case BSPDUType::RA_CAPABILITY_UPDATE_ACK:
-		case BSPDUType::SUSPEND_ACK:
-		case BSPDUType::SUSPEND_NACK:
-		case BSPDUType::RESUME_ACK:
-		case BSPDUType::RESUME_NACK:
-		default:
-			LOG(INFO) << "unimplemented BSSG downlink message, type=" << msgType;
-			return NULL;
-	}
-	return result;
-};
-BSSGDownlinkMsg* BSSGDownlinkMessageParse(ByteVector&src)
-{
-	BSSGDownlinkMsg *result = NULL;
-	unsigned pdutype = src.getByte(sizeof(NSMsg::UnitDataHeaderLen));
-	switch (pdutype) {
-		case BSPDUType::DL_UNITDATA:
-			result = new BSSGMsgDLUnitData(src); 
-			break;
-		case BSPDUType::RA_CAPABILITY_UPDATE_ACK:
-		case BSPDUType::RA_CAPABILITY:
-		case BSPDUType::FLUSH_LL:
-			// todo
-			LOG(INFO) << "unsuppported BSSG downlink PDU type=" << pdutype;
-			break;
-		default:
-			LOG(INFO) << "unsuppported BSSG downlink PDU type=" << pdutype;
-			break;
-	}
-	return result;
-}
-#endif
-
 void BSSGMsgDLUnitData::parseDLUnitDataBody(ByteVector &src, size_t &wp)
 {
 	wp++;	// Skip over the pdutype.

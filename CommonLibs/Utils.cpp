@@ -149,23 +149,6 @@ string format(const char *fmt, ...)
 		free(buffer);
 	}
 	return result;
-#if 0	// Maybe ok, but not recommended.  data() is const char*
-	string result;
-	va_list ap;
-	va_start(ap,fmt);
-	result.reserve(200);
-	int n = vsnprintf(result.data(),198,fmt,ap);
-	va_end(ap);
-	if (n > 198) {
-		if (n > 5000) { LOG(ERR) << "oversized string in format"; n = 5000; }
-		result.reserve(n+2);	// add 1 extra superstitiously.
-		va_start(ap,fmt);
-		vsnprintf(result.data(),n+1,fmt,ap);
-		va_end(ap);
-	}
-	result.resize(n);
-	return result;
-#endif
 }
 
 // Absolutely identical to format above.  This sucks...
@@ -244,30 +227,6 @@ int myscanf(const char *str, const char *fmt, string *s1, string *s2, string *s3
 	}
 	return n;
 }
-
-#if 0
-string format(const char *fmt, string s1) {
-	return format(fmt,s1.c_str());
-}
-string format(const char *fmt, string s1, string s2) {
-	return format(fmt,s1.c_str(),s2.c_str());
-}
-string format(const char *fmt, string s1, string s2, string s3) {
-	return format(fmt,s1.c_str(),s2.c_str(),s3.c_str());
-}
-string format(const char *fmt, string s1, int i1) {
-	return format(fmt,s1.c_str(),i1);
-}
-string format(const char *fmt, int i1, string s1) {
-	return format(fmt,i1,s1.c_str());
-}
-string format(const char *fmt, string s1, string s2, int i1) {
-	return format(fmt,s1.c_str(),s2.c_str(),i1);
-}
-string format(const char *fmt, string s1, string s2, int i1, int i2) {
-	return format(fmt,s1.c_str(),s2.c_str(),i1,i2);
-}
-#endif
 
 // Return time in seconds with high resolution.
 // Note: In the past I found this to be a surprisingly expensive system call in linux.

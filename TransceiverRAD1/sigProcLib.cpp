@@ -593,19 +593,6 @@ signalVector *modulateBurst(const BitVector &wBurst,
   modBurst.fill(0.0);
   signalVector::iterator modBurstItr = modBurst.begin();
 
-#if 0 
-  // if wBurst is already differentially decoded
-  *modBurstItr = 2.0*(wBurst[0] & 0x01)-1.0;
-  signalVector::iterator prevVal = modBurstItr;
-  for (unsigned int i = 1; i < wBurst.size(); i++) {
-    modBurstItr += samplesPerSymbol;
-    if (wBurst[i] & 0x01) 
-      *modBurstItr = *prevVal * complex(0.0,1.0);
-    else
-      *modBurstItr = *prevVal * complex(0.0,-1.0);
-    prevVal = modBurstItr;
-  }
-#else
   // if wBurst are the raw bits
   for (unsigned int i = 0; i < wBurst.size(); i++) {
     *modBurstItr = 2.0*(wBurst[i] & 0x01)-1.0;
@@ -624,7 +611,6 @@ signalVector *modulateBurst(const BitVector &wBurst,
   // shift up pi/2
   // ignore starting phase, since spec allows for discontinuous phase
   GMSKRotate(modBurst);
-#endif
   modBurst.isRealOnly(false);
 
   // filter w/ pulse shape

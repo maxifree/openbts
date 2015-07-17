@@ -328,29 +328,6 @@ void L3IAPacketAssignment::text(std::ostream& os) const
 	}
 }
 
-
-#if 0	// Currently unused
-void L3GPRSPowerControlParameters::writeBits(L3Frame& dest, size_t &wp) const
-{
-	dest.writeField(wp,mAlpha,4);
-	// We dont use any of these gamma fields at the moment:
-	dest.writeField(wp,0,1);	// GAMMA_TM0
-	dest.writeField(wp,0,1);	// GAMMA_TM1
-	dest.writeField(wp,0,1);	// GAMMA_TM2
-	dest.writeField(wp,0,1);	// GAMMA_TM3
-	dest.writeField(wp,0,1);	// GAMMA_TM4
-	dest.writeField(wp,0,1);	// GAMMA_TM5
-	dest.writeField(wp,0,1);	// GAMMA_TM6
-	dest.writeField(wp,0,1);	// GAMMA_TM7
-}
-
-
-void L3GPRSPowerControlParameters::text(ostream& os) const
-{
-	os << "Alpha=" << mAlpha;
-}
-#endif
-
 L3GPRSSI13PowerControlParameters::L3GPRSSI13PowerControlParameters()
 	: mAlpha(GPRS::GetPowerAlpha()),
 	mTAvgW(gConfig.getNum("GPRS.MS.Power.T_AVG_W")),

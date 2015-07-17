@@ -179,26 +179,6 @@ std::ostream& operator<<(std::ostream& os, const FullMobileId&msid)
 	return os;
 }
 
-
-#if UNUSED_BUT_SAVE_FOR_UMTS
-GenericL3Msg::~GenericL3Msg()
-{
-	switch (ml3Type) {
-	case MsgTypeLCH: delete ml3frame; break;
-	case MsgTypeSIP: delete mSipMsg; break;
-	default: assert(0);
-	}
-}
-const char *GenericL3Msg::typeName()
-{
-	switch (ml3Type) {
-	case MsgTypeLCH: return "MsgTypeLCH";
-	case MsgTypeSIP: return "MsgTypeSIP";
-	default: return "invalid";
-	}
-}
-#endif
-
 string BestNeighbor::text() const
 {
 	ostringstream ss;

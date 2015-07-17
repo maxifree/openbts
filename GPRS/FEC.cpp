@@ -120,33 +120,6 @@ std::ostream& operator<<(std::ostream& os, PDCHL1FEC *ch)
 	return os;
 }
 
-#if 0
-PDCHL1FEC::PDCHL1FEC()
-	: PDCHCommon(this)
-{
-	mchUplink = new PDCHL1Uplink(this);
-	mchDownlink = new PDCHL1Downlink(this);
-	mchOldFec = NULL;
-	mchLogChan = NULL;
-	mchTFIs = gTFIs;
-	//mchOpen();
-}
-// We dont really need to remember the LogicalChannel, but maybe we'll need it in the future.
-void PDCHL1FEC::mchOpen(TCHFACCHLogicalChannel *wlogchan)
-{
-	// setGPRS has two affects: getTCH will consider the channel in-use;
-	// and bursts start being delivered to us.
-	// Note that the getTCH function normally doesnt even pay attention to whether
-	// the channel is 'open' or not; it calls recyclable() that checks timers
-	// and reuses the chan if they have expired.
-	mchLogChan = wlogchan;
-	devassert(mchLogChan->inUseByGPRS());
-	mchOldFec = mchLogChan->debugGetL1();
-	//mchReady = true;		// finally
-
-}
-#endif
-
 PDCHL1FEC::~PDCHL1FEC() {
 	gL2MAC.macForgetCh(this);
 	delete mchUplink;
@@ -430,28 +403,6 @@ bool PDCHL1Downlink::send1MsgFrame(
 		}
 	}
 
-#if 0
-	// The below is what went out in release 3.0:
-	if (GPRSDebug & (1|32)) {
-		//RLCBlockReservation *res = mchParent->getReservation(gBSNNext);
-		//std::ostringstream ssres;
-		//if (res) ssres << res;
-		if (! idle || (GPRSDebug & 1024)) {
-			//ostringstream bits;
-			//tobits.hex(bits);
-			//GPRSLOG(1) << "send1MsgFrame "<<msg->mTBF<< " "<<msg->str() << "\nbits:"<<tobits.hexstr();
-			ByteVector content(tobits);
-			GPRSLOG(1) << "send1MsgFrame "<<parent()<<" "<<msg->mTBF<< " "<<msg->str() <<" "
-				<< LOGVAR2("content",content);
-			// This res is unrelated to the message, and confusing, so dont print it:
-				//<<" "<<(res ? res->str() : "");
-		} else if (msg->mUSF) {
-			GPRSLOG(32) << "send1MsgFrame "<<parent()<<" "<<msg->mTBF<< " "<<msg->str() <<" ";
-				//<<" "<<(res ? res->str() : "");
-		}
-	}
-#endif
-
 	delete msg;
 	send1Frame(tobits,ChannelCodingCS1,idle);
 	return true;
@@ -589,21 +540,6 @@ static BitVector *decodeLowSide(const RxBurst &inBurst, int B, GprsDecoder &deco
 	return NULL;
 }
 
-#if 0	// Moved to SoftVector
-// 1 is perfect and 0 means all the bits were 0.5
-static float getEnergy(const SoftVector &vec,float &low)
-{
-	int len = vec.size();
-	avg = 0; low = 1;
-	for (int i = 0; i < len; i++) {
-		float bit = vec[i];
-		float energy = 2*((bit < 0.5) ? (0.5-bit) : (bit-0.5));
-		if (energy < low) low = energy;
-		avg += energy/len;
-	}
-}
-#endif
-
 // WARNING: This func runs in a separate thread.
 void PDCHL1Uplink::writeLowSideRx(const RxBurst &inBurst)
 {
@@ -722,24 +658,6 @@ void GPRSWriteLowSideRx(const GSM::RxBurst& inBurst, PDCHL1FEC*pdch)
 // Code duplicated almost verbatim from L1Encoder.
 // Inability to share code embedded in a method is one of the problems
 // with object oriented programming.
-#if 0
-void PDCHL1Downlink::mchResync()
-{
-	// If the encoder's clock is far from the current BTS clock,
-	// get it caught up to something reasonable.
-	Time now = gBTS.time();
-	int32_t delta = mchNextWriteTime-now;
-	GPRSLOG(8) << "PDCHL1Downlink" <<LOGVAR(mchNextWriteTime)
-			<<LOGVAR(now)<< LOGVAR(delta);
-	if ((delta<0) || (delta>(51*26))) {
-		mchNextWriteTime = now;
-		//mchNextWriteTime.TN(now.TN());	// unneeded?
-		mchNextWriteTime.rollForward(mchMapping.frameMapping(mchTotalBursts),mchMapping.repeatLength());
-		GPRSLOG(2) <<"PDCHL1Downlink RESYNC" << LOGVAR(mchNextWriteTime) << LOGVAR(now);
-	}
-}
-#endif
-
 
 // Dispatch an RLC block on this downlink.
 // This must run once for every Radio Block (4 TDMA frames or so) sent.
@@ -889,31 +807,4 @@ int GetTimingAdvance(float timingError)
 	return initialTA;
 }
 
-#if 0
-	// Turn on this PDCHL1
-	// Unused function: This is how you would reprogram TRXManager.
-	void PDCHL1FEC::snarf()
-	{
-		assert(! encoder()->active());
-		assert(! decoder()->active());
-		// TODO: Wait until an appropriate time, lock everything in sight before doing this.
-		ARFCNManager*radio = encoder()->getRadio();
-		// Connect to the radio now.
-		mPDTCH.downstream(radio);
-		mPTCCH.downstream(radio);
-		mPDIdle.downstream(radio);
-	}
-
-	void PDCHL1FEC::unsnarf()
-	{
-		assert(mlogchan);
-		ARFCNManager*radio = encoder()->getRadio();
-		// TODO: Wait until an appropriate time, lock everything in sight before doing this.
-		mlogchan->downstream(radio);
-		// TODO: This is not thread safe.  It would not work either,
-		// because the TRXManager function asserts that nobody got the channel earlier.
-		// Can we hook the channel inside the logical channel?
-		gBTS.addTCH(mlogchan);
-	}
-#endif
 };

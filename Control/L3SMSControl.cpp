@@ -247,33 +247,6 @@ MachineStatus MOSMSMachine::machineRunState(int state, const GSM::L3Message *l3m
 			// FIXME -- We need to set the message ref correctly, even if the parsing fails.
 			// The compiler gives a warning here.  Let it.  It will remind someone to fix it.
 			// (pat) Update: If we cant parse far enough to get the ref we send a CPError that does not need the ref.
-#if 0
-			unsigned ref;
-			bool success = false;
-			try {
-				// (pat) hierarchy is L3Message::CPMessage::CPData;  L3Message::parse calls CPData::parseBody.
-				CPData data;
-				data.parse(*CM);
-				LOG(INFO) << "CPData " << data;
-				// Transfer out the RPDU -> TPDU -> delivery.
-				ref = data.RPDU().reference();
-				// This handler invokes higher-layer parsers, too.
-				success = handleRPDU(transaction,data.RPDU());
-			}
-			catch (SMSReadError) {
-				LOG(WARNING) << "SMS parsing failed (above L3)";
-				// Cause 95, "semantically incorrect message".
-				LCH->l3sendf(CPData(L3TI,RPError(95,ref)),3);  if you ever use this, it should call l3sendSms
-				delete CM;
-				throw UnexpectedMessage();
-			}
-			catch (GSM::L3ReadError) {
-				LOG(WARNING) << "SMS parsing failed (in L3)";
-				delete CM;
-				throw UnsupportedMessage();
-			}
-			delete CM;
-#endif
 
 			// Step 3
 			// Send CP-DATA containing message ref and either RP-ACK or RP-Error.
@@ -342,25 +315,6 @@ MachineStatus MOSMSMachine::machineRunState(int state, const GSM::L3Message *l3m
 			return unexpectedState(state,l3msg);
 	}
 }
-
-#if UNUSED
-// Return the state of the current SMS procedure, if any.
-SmsState getCurrentSMSState()
-{
-	MMContext *set = channel()->chanGetContext(true);
-	TranEntry *sms = set->getTran(MMContext::TE_MOSMS1);
-	if (! sms) { return SmsNonexistent; }
-
-	MachineBase *base = sms->currentProcedure();
-	if (base) {	// This should be an assert.
-		MOSMSMachine *smssm = dynamic_cast<typeof(smssm)>(base);
-		if (smssm) {	// This too.
-			return smssm->mSmsState;
-		}
-	}
-	return SmsNonexistent;
-}
-#endif
 
 // There can be a max of two simultaneous MO-SMS.
 // The CM Service Request to start a new MO-SMS during an existing one may arrive before the final ACK of the previous MO-SMS, as per GSM 4.11 5.4
@@ -615,55 +569,5 @@ void initMTSMS(TranEntry *tran)
 	tran->teSetProcedure(new MTSMSMachine(tran));
 	//tran->lockAndStart(new MTSMSMachine(tran));
 }
-
-#if UNUSED 	// (pat) what was I thinking here? 
-xxxxxxxx This version is not used
-// Parse an incoming SMS message into RPData, save everything else we need.
-// We do this immediately upon reception of a SIP message to error check it before queueing it for delivery to an MS.
-// Return result or NULL on failure.  SIP should return error 400 "Bad Request" in this case.
-RPData *parseSMS(const char *callingPartyDigits, const char* message, const char* contentType)
-{
-	// TODO: Read MIME Type from smqueue!!
-	unsigned reference = random() % 255;
-	RPData *rp_data = NULL;
-
-	if (strncmp(contentType,"text/plain",10)==0) {
-		rp_data = new RPData(reference,
-			RPAddress(gConfig.getStr("SMS.FakeSrcSMSC").c_str()),
-			TLDeliver(callingPartyDigits,message,0));
-	} else if (strncmp(contentType,"application/vnd.3gpp.sms",24)==0) {
-		BitVector2 RPDUbits(strlen(message)*4);
-		if (!RPDUbits.unhex(message)) {
-			LOG(WARNING) << "Hex string parsing failed (in incoming SIP MESSAGE)";
-			return NULL;
-		}
-
-		try {
-			RLFrame RPDU(RPDUbits);
-			LOG(DEBUG) << "SMS RPDU: " << RPDU;
-
-			rp->data = new RPData();
-			rp_data->parse(RPDU);
-			LOG(DEBUG) << "SMS RP-DATA " << rp_data;
-		}
-		catch (SMSReadError) {
-			LOG(WARNING) << "SMS parsing failed (above L3)";
-			delete rp_data; rp_data = NULL;
-		}
-		catch (GSM::L3ReadError) {
-			LOG(WARNING) << "SMS parsing failed (in L3)";
-			delete rp_data; rp_data = NULL;
-		}
-		catch (...) {		// Should not happen, but be safe.
-			LOG(WARNING) << "SMS parsing failed (unexpected error)";
-			delete rp_data; rp_data = NULL;
-		}
-		return rp_data;
-	} else {
-		LOG(WARNING) << "Unsupported content type (in incoming SIP MESSAGE) -- type: " << contentType;
-		return NULL;
-	}
-}
-#endif
 
 };

@@ -57,10 +57,6 @@ class TranEntry;
 class MMContext;
 extern void L3DCCHLoop(L3LogicalChannel*dcch, L3Frame *frame);
 
-#if UNUSED_BUT_SAVE_FOR_UMTS
-typedef InterthreadQueue<GenericL3Msg> CSL3StateMachineFifo;
-#endif
-
 // This is a return state from a state machine.
 
 struct MachineStatus {
@@ -176,27 +172,6 @@ class MachineBase : public MemCheckMachineBase
 	MachineStatus dispatchTimeout(L3Timer *timer);
 	MachineStatus dispatchFrame(const L3Frame *frame, const L3Message *l3msg);
 };
-
-
-#if UNUSED_BUT_SAVE_FOR_UMTS
-// TODO: This class could go away.  I am keeping it around to see if it is useful for UMTS.
-// This is the outer layer state machine to process CS L3 Messages.
-// CS [Circuit Switched] L3 messages are specified in 3GPP 4.08, as opposed to PS [Packet Switched] L3 messages handled by the SGSN.
-// This is part of the L3 rewrite.
-class CSL3StateMachine
-{
-	CSL3StateMachineFifo mCSL3Fifo;
-	Thread* mCSL3Thread;
-
-	public:
-	CSL3StateMachine();
-	//void csl3ServiceLoop();
-	//void csl3Start();
-	// Put a message on the queue of messages to process.
-	//bool csl3Write(GenericL3Msg *msg);		// return TRUE if the message was handled.
-};
-extern CSL3StateMachine gCSL3StateMachine;
-#endif
 
 };	// namespace Control
 

@@ -234,17 +234,6 @@ void mg_con_close(mg_con_t *mgp)
 	mgp->mg_time_last_close = pat_timef();
 }
 
-#if 0
-static mg_con_t *mg_con_find_by_ctx(PdpContext *pctx)
-{
-	int i; mg_con_t *mgp = mg_cons;
-	for (i=0; i < ggConfig.mgMaxConnections; i++, mgp++) {
-		if (mgp->mg_pdp == pctx) { return mgp; }
-	}
-	return NULL;
-}
-#endif
-
 static mg_con_t *mg_con_find_by_ip(uint32_t addr)
 {
 	int i; mg_con_t *mgp = mg_cons;
@@ -472,18 +461,6 @@ int miniggsn_snd_npdu_by_mgc(mg_con_t *mgp,unsigned char *npdu, unsigned len)
 	}
     return 0;
 }
-
-#if 0 // not needed
-// Route an n-pdu from the MS out to the internet.
-// Called by SNDCP when it has received/re-assembled a N-PDU
-int miniggsn_snd_npdu(PdpContext *pctx,unsigned char *npdu, unsigned len)
-{
-	// Find the fd from the pctx;  We should put this in the pdp_ctx.
-	mg_con_t *mgp = mg_con_find_by_ctx(pctx);
-	if (mgp == NULL) { return -1; }		// Whoops
-	return miniggsn_snd_npdu_by_mgc(mgp, npdu, len);
-}
-#endif
 
 time_t gGgsnInitTime;
 

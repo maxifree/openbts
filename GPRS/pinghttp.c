@@ -563,16 +563,6 @@ int pinghttp(char *whoto,char *whofrom,mg_con_t *mgp)
 			}
 
 			// Try using bindtodevice on the receive rfd.
-#if 0
-			char *dummy = "foo";
-			rfd = socket(AF_INET, SOCK_RAW, IPPROTO_TCP);
-			if (rfd < 0) { printf("cannot open raw socket\n"); return 2;}
-			setsockopt(rfd,SOL_SOCKET,SO_REUSEADDR,&one,sizeof(one));
-			setsockopt(rfd,IPPROTO_IP,IP_HDRINCL,&one,sizeof(one));
-			if (setsockopt(rfd,SOL_SOCKET,SO_BINDTODEVICE,dummy,strlen(dummy)+1)) {
-				printf("BINDTODEVICE failed\n");
-			}
-#endif
 		}
 	}
 	int rfd = sfd;

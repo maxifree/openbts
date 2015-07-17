@@ -36,22 +36,6 @@ class L3LogicalChannel {
 	// Update: There are so many penetrations through L3LogicalChannel into MMContext, which must be locked
 	// with gMMLock, that I gave up on having a separate lock here and just use gMMLock.
 	// mutable Mutex mChanLock;
-#if UNUSED
-	//L3FrameFIFO ml3DownlinkQ;
-
-	// New way.  This is only used for RR and CC messages which are always on SAPI 0.
-	//void l3sendm(const L3Message& msg);
-	// (pat) Stick a primitive in the uplink queue.
-	//void l2uplinkEneuquep(const GSM::Primitive& prim, unsigned SAPI=0)
-	//	{ assert(mL2[SAPI]); mL2[SAPI]->l2WriteHighSide(GSM::L3Frame(prim)); }
-
-	// If there is an ongoing voice call, we need the SIP pointer.
-	// For convenience I am using the TransactionEntry to find the voice data,
-	// but do NOT use this TransactionEntry for anything else; there may be multiple TransactionEntries associated
-	// with each logical channel.  For example, L3 messages should be sent to the
-	// L3 state machines in case the TI [Transaction Identifier] in the message does not match this TransactionEntry.
-	//TranEntry *mVoiceTrans;
-#endif
 	// DCCH Channels go through two regimes in both GSM and UMTS.
 	// When the channel is first granted to an MS the MS is usually unidentified,
 	// meaning it sent us a TMSI but we either do not know or do not trust the TMSI->IMSI mapping.

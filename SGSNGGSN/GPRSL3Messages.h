@@ -39,26 +39,6 @@ enum RAUpdateType {
 	RAUpdated = 0, CombinedRALAUpdated = 1, CombinedRALAWithImsiAttach = 2, PeriodicUpdating = 3
 };
 
-
-#if 0
-// An L3Message as known by the GPRS code.
-// The L3Message is not really applicable here, because we do not
-// really know enough about this message to set the bodylength etc. yet.
-//struct GPRSL3Message : ByteVector {
-//	unsigned mSkip;
-//	unsignd mPD;
-//	unsigned mMITI;
-//
-//	// Parse out the common L3Message header
-//	GPRSL3Message(ByteVector &vec) : ByteVector(vec.begin(),vec,size())
-//	{
-//		mSkip = getByte(0) >> 4;
-//		mPD = getByte(0) & 0xf;
-//		mMITI = getByte(1);
-//	}
-//};
-#endif
-
 // The L3Message is built on L3Frame which assumes that messages are in BitVectors,
 // but for GPRS messages come from RLC (and LLC and LLE) and they are ByteVectors.
 class L3GprsMsg : public Text2Str

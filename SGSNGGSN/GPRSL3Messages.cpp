@@ -515,38 +515,6 @@ void GmmMobileIdentityIE::parseLV(ByteVector &pp, size_t &rp)
 		memcpy(mIdData,pp.begin()+rp,mLen);
 		//LLCDEBUG << "mIdData:"<<(int)mIdData[0]<<(int)mIdData[1]<<(int)mIdData[2]<<(int)mIdData[3]<<"\n";
 	}
-#if 0
-	int datalen = rp-1;
-	if (datalen > 8) datalen = 8;
-	unsigned char *datap = pp.begin() + rp + 1;
-
-	mTypeOfId = typeIdByte & 7;
-	int isOdd = typeIdByte & 8;
-	switch (mTypeOfId) {
-	case 0:	// No identity
-		break;
-	case 4:	// TMSI or P-TMSI
-		if (len != 4) {
-			LLCWARN("unexpected Mobile Identity TMSI length:"<<len);
-		}
-		mTmsi = pp.getUInt32(rp+1);
-		break;
-	case 1:	// IMSI
-	case 2: // IMEI
-	case 3: // IMEISV
-		mIdData[0] = typeIdByte>>4;
-		memcpy(&mIdData[1],datap,datalen);
-		mNumDigits = (len-1)*2 - (isOdd?1:0);
-		break;
-	case 5: // TMGI and MBMS session id.
-		memcpy(&mIdData[0],datap,datalen);
-		break;
-	default:
-		LLCWARN("unexpecited Mobile Identity type:" << mTypeOfId);
-		break;
-	}
-	// Assume it is p-tmsi and get it.
-#endif
 	rp += mLen;
 }
 

@@ -85,24 +85,6 @@ class Text2Str {
 };
 std::ostream& operator<<(std::ostream& os, const Text2Str *val);
 
-#if 0
-// Generic Activity Timer.  Lots of controls to make everybody happy.
-class ATimer {
-	double mStart;
-	//bool mActive;
-	double mLimitTime;
-	public:
-	ATimer() : mStart(0), mLimitTime(0) { }
-	ATimer(double wLimitTime) : mStart(0), mLimitTime(wLimitTime) { }
-	void start() { mStart=timef(); }
-	void stop() { mStart=0; }
-	bool active() { return !!mStart; }
-	double elapsed() { return timef() - mStart; }
-	bool expired() { return elapsed() > mLimitTime; }
-};
-#endif
-
-
 struct BitSet {
 	unsigned mBits;
 	void setBit(unsigned whichbit) { mBits |= 1<<whichbit; }

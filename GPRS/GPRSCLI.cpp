@@ -191,16 +191,6 @@ static CLIStatus gprsStats(int argc, char **argv, int argi, ostream&os)
 	return SUCCESS;
 }
 
-#if 0	// pinghttp test code not linked in yet.
-static int gprsPingHttp(int argc, char **argv, int argi, ostream&os)
-{
-	if (argi >= argc) { os << "syntax: gprs pinghttp address\n"; return 1; }
-	//char *addr = argv[argi++];
-	os << "pinghttp unimplemented\n";
-	return SUCCESS;
-}
-#endif
-
 // Start the service and allocate a channel.
 // This is redundant - can call rach.
 static CLIStatus gprsStart(int argc, char **argv, int argi, ostream&os)
@@ -268,26 +258,6 @@ extern "C" {
 
 static CLIStatus gprsTest(int argc, char **argv, int argi, ostream&os)
 {
-#if 0
-	LLCParity parity;
-	ByteVector bv;
-	for (int i = 0; i <= 5; i++) {
-		switch (i) {
-		case 0: bv = ByteVector(3); bv.fill(0); bv.setByte(2,1); break;
-		case 1: bv = ByteVector(3); bv.fill(0); bv.setByte(2,2); break;
-		case 2: bv = ByteVector(3); bv.fill(0); bv.setByte(0,0x80); break;
-		case 3: bv = ByteVector(3); bv.fill(0); bv.setByte(0,0x40); break;
-		case 4: bv = ByteVector(3); bv.fill(0); bv.setByte(0,0); break;
-		case 5: bv = ByteVector("Now is the time for all good men"); break;
-		}
-		unsigned crc1 = gprs_llc_fcs(bv.begin(),bv.size());
-		unsigned crc2 = parity.computeFCS(bv);
-		printf("size=%d, byte=0x%x crc=0x%x, crcnew=0x%x\n",bv.size(),bv.getByte(0),crc1,crc2);
-	}
-#endif
-
-	//GPRSLOG(1) << "An unterminated string";
-	//GPRSLOG(1) << "Another unterminated string";
 	return SUCCESS;
 }
 

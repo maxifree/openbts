@@ -425,15 +425,6 @@ class SSMapCommand
 			ssParams.push_back(ssParseParameter(data,adjustedLen,datai));
 			LOG(DEBUG)<<LOGVAR(datai)<<LOGVAR(datalen)<<LOGVAR(paramsLen)<<LOGVAR(adjustedLen);
 		};
-#if 0
-		const char*paramsStart = data+datai;
-		unsigned parami = 0;
-		while (parami < paramsLen) {
-			LOG(DEBUG)<<LOGVAR(datai)<<LOGVAR(datalen)<<LOGVAR(paramsLen);
-			ssParams.push_back(ssParseParameter(paramsStart,paramsLen,parami));
-		};
-		datai += parami;
-#endif
 	}
 
 	// Parse the map message in the SS Facility IE.

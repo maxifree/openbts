@@ -138,28 +138,6 @@ class RWLock {
 
 };
 
-
-#if 0
-// (pat) NOT FINISHED OR TESTED.  A pointer that releases a specified mutex when it goes out of scope.
-template<class PointsTo>
-class ScopedPointer {
-	Mutex &mControllingMutex;	// A pointer to the mutex for the object being protected.
-	PointsTo *mPtr;
-
-	public:
-	ScopedPointer(Mutex& wMutex) :mControllingMutex(wMutex) { mControllingMutex.lock(); }
-	// Requisite Copy Constructor:  The mutex is already locked, but we need to lock it again because the
-	// other ScopedPointer is about to go out of scope and will call unlock.
-	ScopedPointer(ScopedPointer &other) :mControllingMutex(other.mControllingMutex) { mControllingMutex.lock(); }
-	~ScopedPointer() { mControllingMutex.unlock(); }
-
-	// You are allowed to assign and derference the underlying pointer - it still holds the Mutex locked.
-	PointsTo *operator->() const { return mPtr; }
-	PointsTo * operator=(PointsTo *other) { mPtr = other; }
-	PointsTo& operator*() { return *mPtr; }
-};
-#endif
-
 // Class to acquire a Mutex lock and release it automatically when this goes out of scope.
 // ScopedLock should be used preferentially to Mutex::lock() and Mutex::unlock() in case a try-catch throw passes through
 // the containing procedure while the lock is held; ScopedLock releases the lock in that case.

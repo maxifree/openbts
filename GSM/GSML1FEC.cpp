@@ -1898,13 +1898,6 @@ bool TCHFRL1Decoder::decodeTCH_GSM(bool stolen,const SoftVector *wC)
 		if (good) {
 			// Undo Um's importance-sorted bit ordering.
 			// See GSM 05.03 3.1 and Table 2.
-#if 0		// pre-pat code:
-			BitVector2 payload = mGsmVFrame.payload();
-			mTCHD.unmap(g610BitOrder,260,payload);
-			mGsmVFrame.pack(newFrame->begin());
-			// Save a copy for bad frame processing.
-			mGsmPrevGoodFrame.clone(mGsmVFrame);
-#endif
 			mTCHD.unmap(g610BitOrder,260,mPrevGoodFrame);	// Put the completed decoded data in mPrevGoodFrame.
 			newFrame->append(mPrevGoodFrame);				// And copy it into the RTP audio frame.
 			mNumBadFrames = 0;

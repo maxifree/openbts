@@ -126,17 +126,6 @@ int TFIList::findFreeTFI(RLCDirType dir)
 		if (lasttfi == 32) { lasttfi = 0; }
 		if (!mTFIs[dir][lasttfi]) { return lasttfi; }
 	}
-#if 0
-	// DEBUG: start at 1 instead of 0
-	for (int tfi = 1; tfi < 32; tfi++) {
-		// DEBUG: try incrementing tfi to avoid duplication errors:
-		if (tfi == lasttfi) { continue; }
-		if (!mTFIs[dir][tfi]) {
-			lasttfi = tfi;
-			return tfi;
-		}
-	}
-#endif
 	return -1;
 }
 

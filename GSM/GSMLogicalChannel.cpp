@@ -472,17 +472,6 @@ void L2LogicalChannel::immediateRelease()
 	mT3101.reset();
 	mT3109.reset();
 	mT3111.expire();	// make sure the channel becomes recyclable
-#if 0 // fixed a better way
-	// (pat) When we release the channel the LAPDm state machine sends a dummy frame on the channel.
-	// We dont want to try to reuse the channel until that clears.
-	// FIXME: Do this better - go into the encoder and save the time when dummy frame is sent.
-	if (getSACCH()->l1active()) {
-		// We dont need the delay if this is a normal release, meaning the sacch was deactivated a long time ago.
-		mTRecycle.set(500);	// (pat) Channel will be recyclable when this expires.  SACCH is 480ms.  Could actually be up to 1 second.
-	} else {
-		mTRecycle.expire();	// Recycle now.
-	}
-#endif
 	getSACCH()->l2stop(); // Done already in the T3109 or T3111 expiry cases.
 	this->l2stop();
 }

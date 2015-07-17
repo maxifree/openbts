@@ -264,14 +264,6 @@ class BitVector : public VectorBase<char>
 	void dup(BitVector other) { assert(!this->getData()); makeAlias(other); assert(this->mStart == other.mStart); }
 	void dup(BitVector &other) { makeAlias(other); assert(this->mStart == other.mStart); }
 
-#if 0
-	void operator=(const BitVector& other) {
-		printf("BitVector::operator=\n");
-		assert(0);
-		//this->dup(other);
-	}
-#endif
-
     bool operator==(const BitVector &other) const;
 
 	/** Copy to dst, not including those indexed in puncture. */

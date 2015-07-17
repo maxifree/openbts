@@ -58,59 +58,6 @@ void Control::DCCHDispatcher(L3LogicalChannel *DCCH)
 		catch (...) {
 			LOG(ERR) << "channel killed by unexpected exception ";
 		}
-
-#if 0
-		// Catch the various error cases.
-
-		catch (RemovedTransaction except) {
-			LOG(ERR) << "attempt to use removed transaciton " << except.transactionID();
-		}
-		catch (ChannelReadTimeout except) {
-			LOG(NOTICE) << "ChannelReadTimeout";
-			// Cause 0x03 means "abnormal release, timer expired".
-			DCCH->l2sendm(L3ChannelRelease((RRCause)0x03));
-			gTransactionTable.remove(except.transactionID());
-		}
-		catch (UnexpectedPrimitive except) {
-			LOG(NOTICE) << "UnexpectedPrimitive";
-			// Cause 0x62 means "message type not not compatible with protocol state".
-			DCCH->l2sendm(L3ChannelRelease((RRCause)0x62));
-			if (except.transactionID()) gTransactionTable.remove(except.transactionID());
-		}
-		catch (UnexpectedMessage except) {
-			LOG(NOTICE) << "UnexpectedMessage";
-			// Cause 0x62 means "message type not not compatible with protocol state".
-			DCCH->l2sendm(L3ChannelRelease((RRCause)0x62));
-			if (except.transactionID()) gTransactionTable.remove(except.transactionID());
-		}
-		catch (UnsupportedMessage except) {
-			LOG(NOTICE) << "UnsupportedMessage";
-			// Cause 0x61 means "message type not implemented".
-			DCCH->l2sendm(L3ChannelRelease((RRCause)0x61));
-			if (except.transactionID()) gTransactionTable.remove(except.transactionID());
-		}
-		catch (Q931TimerExpired except) {
-			LOG(NOTICE) << "Q.931 T3xx timer expired";
-			// Cause 0x03 means "abnormal release, timer expired".
-			// TODO -- Send diagnostics.
-			DCCH->l2sendm(L3ChannelRelease((RRCause)0x03));
-			if (except.transactionID()) gTransactionTable.remove(except.transactionID());
-		}
-		catch (SIP::SIPTimeout except) {
-			// FIXME -- The transaction ID should be an argument here.
-			LOG(WARNING) << "Uncaught SIPTimeout, will leave a stray transcation";
-			// Cause 0x03 means "abnormal release, timer expired".
-			DCCH->l2sendm(L3ChannelRelease((RRCause)0x03));
-			if (except.transactionID()) gTransactionTable.remove(except.transactionID());
-		}
-		catch (SIP::SIPError except) {
-			// FIXME -- The transaction ID should be an argument here.
-			LOG(WARNING) << "Uncaught SIPError, will leave a stray transcation";
-			// Cause 0x01 means "abnormal release, unspecified".
-			DCCH->l2sendm(L3ChannelRelease((RRCause)0x01));
-			if (except.transactionID()) gTransactionTable.remove(except.transactionID());
-		}
-#endif
 	}
 }
 

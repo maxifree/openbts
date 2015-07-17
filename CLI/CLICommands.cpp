@@ -472,16 +472,6 @@ static CLIStatus sendsimple(int argc, char** argv, ostream& os)
 
 	os << "message submitted for delivery" << endl;
 
-#if 0
-	int numRead = sock.read(buffer,10000);
-	if (numRead>=0) {
-		buffer[numRead]='\0';
-		os << "response: " << buffer << endl;
-	} else {
-		os << "timed out waiting for response";
-	}
-#endif
-
 	return SUCCESS;
 }
 
@@ -629,33 +619,6 @@ static CLIStatus calls(int argc, char** argv, ostream& os)
 	bool trans = options.count("-t");
 	bool mm = options.count("-m");
 	bool sip = options.count("-s");
-#if 0
-	bool showAll = false;
-	bool trans = false;
-	bool mm = false;
-	bool sip = false;
-	// Parse args.
-	for (int i = 1; i < argc; i++) {
-		if (argv[i][0] == '-') {
-			for (char*op = argv[i]+1; *op; op++) {
-				switch (*op) {
-					case 'm': mm = true; continue;
-					case 'a': showAll = true; continue;
-					case 's': sip = true; continue;
-					case 't': trans = true; continue;
-					case 'l': continue;	// Allows -all without complaint.
-					default:
-						os << "unrecognized argument:"<<argv[i]<<" ";
-						return BAD_VALUE;
-				}
-			}
-		} else {
-			// This command doesnt take any non-option arguments.
-			os << "unrecognized argument:"<<argv[i]<<" ";
-			return BAD_VALUE;
-		}
-	}
-#endif
 	// If no specific options, default is to show transactions
 	if (!(trans || mm || sip)) { trans = true; }
 

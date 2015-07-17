@@ -398,14 +398,6 @@ bool MSInfo::msAddCh(unsigned chmask, const char *tnlist)
 	int before = pp-tnlist;					// Number of channels needed before PACCH.
 	// Check for channel availability.
 	unsigned tn, tnfirst = addTn(msPacch->TN(),- before);
-#if 0
-	unsigned tn = msPacch->TN();
-	int after = strlen(tnlist)-before-1;	// Number of channels needed after PACCH.
-	if (before && !tnavail(chmask,tn-1)) {return false;}
-	if (before>1 && !tnavail(chmask,tn-2)) {return false;}
-	if (after && !tnavail(chmask,tn+1)) {return false;}
-	if (after>1 && !tnavail(chmask,tn+2)) {return false;}
-#endif
 	GPRSLOG(4) << "msAddCh" <<LOGVAR(tnlist)<<LOGVAR(before)<<LOGVAR(tnfirst);
 	for (tn=tnfirst,cp=tnlist; *cp; cp++, tn=addTn(tn,1)) {
 		if (*cp == 'P') { continue; }	// PACCH already allocated, so it wont look avail.
@@ -480,26 +472,6 @@ bool MSInfo::msAssignChannels2(int maxdown, int maxup, int sum)
 	msPCHDowns.push_back(pdch1->downlink());
 	msPacch = pdch1;
 
-#if 0
-	if (maxdown <= 1 && maxup <= 1) { return; }
-
-	// Look for adjacent channels before (minus) and after (plus) our PACCH tn.
-	// We look up to two channels in both directions.
-	int plus = 0, minus = 0;
-	PDCHL1FEC *cplus[2]; cplus[0] = cplus[1] = 0;
-	PDCHL1FEC *cminus[2]; cminus[0] = cminus[1] = 0;
-
-	unsigned tn = pdch1->TN();
-	for (plus = 0; plus < 2; plus++) {
-		cplus[plus] = gL2MAC.macFindChannel(pdch1->ARFCN(),(unsigned)(tn+plus)%8);
-		if (!cplus[plus]) break;
-	}
-	for (minus = 0; minus < 2; minus++) {
-		cminus[minus] = gL2MAC.macFindChannel(pdch1->ARFCN(),(unsigned)(tn-minus)%8);
-		if (!cminus[minus]) break;
-	}
-#endif
-
 	unsigned mask = gL2MAC.macFindChannels(pdch1->ARFCN());
 	GPRSLOG(2)<<format("AssignChannels3, down/up=%d/%d sum=%d mask=0x%x",
 		maxdown,maxup,sum,mask);
@@ -536,42 +508,6 @@ bool MSInfo::msAssignChannels2(int maxdown, int maxup, int sum)
 	msPCHUps.sort(chCompareFunc);
 	msPCHDowns.sort(chCompareFunc);
 
-#if 0
-	if (pdch2) {
-		if (maxdown > 1) { msPCHDowns.push_back(pdch2->downlink()); }
-
-		// Do we want to add a third or fourth channel?  They will be downlink only.
-		// We can satisfy multislot constraints (Tra=1 and Ttb=2) using
-		// either or both of the timeslots immediately prior to the two
-		// channels already allocated, but note that these ones cannot be PACCH.
-		if ((int)msPCHDowns.size() < maxdown && chsum(this) < slots.mMultislotSum) {
-			int tn2 = pdch2->TN();
-			int tn = tn1<tn2 ? tn1 : tn2;	// tn is the lower of the two ch assigned.
-			if (--tn < 0) { tn = 7; }
-			PDCHL1FEC *pdch3 = gL2MAC.macFindChannel(pdch1->ARFCN(),tn);
-			if (pdch3) {
-				msPCHDowns.push_back(pdch3->downlink());
-
-				// Can we do a 4-down config?
-				// In that case we will sacrifice an uplink TN.
-				if ((int)msPCHDowns.size() < maxdown && 5 <= slots.mMultislotSum) {
-					if (--tn < 0) { tn = 7; }
-					PDCHL1FEC *pdch4 = gL2MAC.macFindChannel(pdch1->ARFCN(),tn);
-					if (pdch4) {
-						msPCHDowns.push_back(pdch4->downlink());
-						maxup = 1;	// Limit to one channel up now.
-					}
-				}
-			}
-		}
-
-		// The chsum test is only needed for multislot class 3,
-		// which is the only class that can not do 2-down/2-up.
-		if (maxup > 1 && chsum(this) < slots.mMultislotSum) {
-			msPCHUps.push_back(pdch2->uplink());
-		}
-	} // have pdch2.
-#endif
 	return true;
 }
 

@@ -37,24 +37,6 @@ typedef std::map<string,MMUser*> MMUserMap;
 using namespace GSM;
 
 
-#if 0
-// A list of pointers with methods designed for pointers that return NULL on error.
-template<class T>
-class PtrList : public std::list<T*> {
-	//typedef typename std::list<T>::iterator itr_t;
-	//typedef typename std::list<T> type_t;
-	public:
-	T* pop_front_ptr() {
-		if (this->empty()) { return NULL; }
-		T* result = this->front();
-		this->pop_front();
-		return result;
-	}
-};
-#endif
-
-
-
 // This is the per-IMSI data for a subscriber, and a data-cache for data whose primary storage is persistent.
 // It is now persistent beyond the life of a single transaction call to save RRLP status.
 // Anything that needs to be persistent across reboots or shared via handover needs to be backed up

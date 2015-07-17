@@ -415,15 +415,6 @@ void L2LAPDm::l2dlWriteHighSide(const L3Frame& frame)
 			releaseLink(false,(Primitive)0);
 			mLock.unlock();
 			break;
-#if 0
-		case ERROR:
-			devassert(0);	// Layer3 never sends this; only RELEASE or HARDRELEASE.
-			// Forced release.
-			mLock.lock();
-			abnormalRelease(true);	// (pat) Send a DM to alert the peer.
-			mLock.unlock();
-			break;
-#endif
 		default:
 			OBJLOG(ERR) << "unhandled primitive in L3->L2 " << frame;
 			devassert(0);

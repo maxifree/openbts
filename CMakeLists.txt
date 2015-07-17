@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(openbts)
 
-execute_process(COMMAND git rev-parse --short=10 HEAD -C ${CMAKE_SOURCE_DIR}
+execute_process(COMMAND git -C ${CMAKE_SOURCE_DIR} rev-parse --short=10 HEAD
                 OUTPUT_VARIABLE REPO_REV)
 string(STRIP ${REPO_REV} REPO_REV)
 add_definitions(-DREPO_REV="${REPO_REV}")
@@ -25,10 +25,10 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/config.h
 #define HAVE_GETHOSTBYNAME2_R 1
 #define HAVE_SSE3
 #define HAVE_SSE4_1
-#define ORTP_NEW_API 1
+#define ORTP_NEW_API 
 #define USE_UHD 1
-#define VERSION \"5.0-master\"
 #define WORDS_BIGENDIAN
+#define VERSION \"5.0-master\"
 "
 )
 

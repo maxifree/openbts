@@ -144,28 +144,5 @@ const char* CallStateString(CallState state);
 
 std::ostream& operator<<(std::ostream& os, CallState state);
 
-#if UNUSED_BUT_SAVE_FOR_UMTS
-// A message to the CS L3 state machine.  The message may come from a GSM LogicalChannel (FACCH, SDCCH, or SACCH), GPRS, or SIP.
-// This is part of the L3 rewrite.
-class GenericL3Msg {
-	public:
-	enum GenericL3MsgType {
-		MsgTypeLCH,
-		MsgTypeSIP
-	};
-	enum GenericL3MsgType ml3Type;
-	const char *typeName();
-	GSM::L3Frame *ml3frame;
-	GSM::L2LogicalChannel *ml3ch;
-	SIP::DialogMessage *mSipMsg;
-	const std::string mCallId;	// TODO: Now unused, remove.
-
-	//GenericL3Msg(GSM::L3Frame *wFrame, L3LogicalChannel *wChan) : ml3Type(MsgTypeLCH), ml3frame(wFrame),ml3ch(dynamic_cast<L3LogicalChannel*>(wChan)),mSipMsg(0) { assert(ml3frame); }
-	GenericL3Msg(GSM::L3Frame *wFrame, GSM::L2LogicalChannel *wChan) : ml3Type(MsgTypeLCH), ml3frame(wFrame),ml3ch(wChan),mSipMsg(0) { assert(ml3frame); }
-	GenericL3Msg(SIP::DialogMessage *wSipMsg, std::string wCallId) : ml3Type(MsgTypeSIP), ml3frame(0),ml3ch(0), mSipMsg(wSipMsg), mCallId(wCallId) { assert(mSipMsg); }
-	~GenericL3Msg();
-};
-#endif
-
 };
 #endif

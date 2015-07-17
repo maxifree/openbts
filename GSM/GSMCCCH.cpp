@@ -310,37 +310,6 @@ bool CCCHLogicalChannel::processRaches()
 			return true;	// We processed this rach and used the CCCH, one way or another.
 		}
 
-//		L2LogicalChannel *LCH;
-//		if (chtype == TCHFType) {
-//			// FIXME: This blocks at L2LAPDm::sendIdle!
-//			LCH = gBTS.getTCH();
-//		} else if (chtype == SDCCHType) {
-//			// We may reserve some SDCCH for CC and SMS.
-//			if (requestingLUR(rach->mRA)) {
-//				int SDCCHAvailable = gBTS.SDCCHAvailable();
-//				int SDCCHReserve = gConfig.getNum("GSM.Channels.SDCCHReserve");
-//				if (requestingLUR(rach->mRA) && SDCCHAvailable <= SDCCHReserve) {
-//					// (pat 2-2014) Changed this message and downgraded from CRIT.
-//					LOG(CRIT) << "LUR [Location Update Request] congestion, insufficient "<<LOGVAR(SDCCHAvailable) << " <= " <<LOGVAR(SDCCHReserve);
-//					goto failure;
-//				}
-//			}
-//
-//			LCH = gBTS.getSDCCH();
-//		} else {
-//			LOG(NOTICE) << "RACH burst for unsupported service RA=" << rach->mRA;
-//			LCH = gBTS.getSDCCH();	// Try anyway.
-//		}
-//
-//
-//		// Nothing available?
-//		if (!LCH) {
-//			failure:
-#if 0
-//			return false;
-#endif
-//		}
-
 		if (! rach->mChan) {
 			delete rach;
 			continue;

@@ -51,50 +51,9 @@ struct RachInfo {
 		: mRA(wRA), mWhen(wWhen), mRadData(wRD), mTN(wTN), mChan(NULL)
 		{ RN_MEMCHKNEW(RachInfo) }
 	~RachInfo() { RN_MEMCHKDEL(RachInfo) }
-
-#if 0
-	// (pat) This is used when a RachInfo is placed in a priority_queue.
-	// Return true if rach1 should appear before rach2 in the priority_queue,
-	// meaning that rach1 will be serviced before rach2.
-	bool operator>(const RachInfo *rach1, const RachInfo *rach2) {
-		if (rach1->mChan) {
-			assert(rach2->mChan);
-			return rach1->mReadyTime < rach2->mreadyTime;
-		}
-		return rach1->mWhen < rach2-mWhen;
-	}
-#endif
 };
 std::ostream& operator<<(std::ostream& os, const RachInfo &rach);
 std::ostream& operator<<(std::ostream& os, const RachInfo *rach);
-
-#if unused
-/** This record carries all of the parameters associated with a RACH burst. */
-class ChannelRequestRecord {
-
-	private:
-
-	unsigned mRA;		///< request reference
-	GSM::Time mFrame;	///< receive timestamp
-	float mRSSI;		///< dB wrt full scale
-	float mTimingError;	///< correlator timing error in symbol periods
-
-	public:
-
-	ChannelRequestRecord(
-		unsigned wRA, const GSM::Time& wFrame,
-		float wRSSI, float wTimingError)
-		:mRA(wRA), mFrame(wFrame),
-		mRSSI(wRSSI), mTimingError(wTimingError)
-	{ }
-
-	unsigned RA() const { return mRA; }
-	const GSM::Time& frame() const { return mFrame; }
-	float RSSI() const { return mRSSI; }
-	float timingError() const { return mTimingError; }
-
-};
-#endif
 
 // Enum used to create fake RACHes for testing purposes.
 enum FakeRachType {
